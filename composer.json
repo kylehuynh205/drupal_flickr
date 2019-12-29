@@ -1,0 +1,13 @@
+{
+    "name": "flickr",
+    "type": "drupal-module",
+    "description": "Flickr Integration",
+    "keywords": [
+    ],
+    "homepage": "https://www.drupal.org/project/flickr",
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/flickr",
+        "source": "http://cgit.drupalcode.org/flickr",
+    },
+}
