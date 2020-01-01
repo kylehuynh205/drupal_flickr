@@ -41,7 +41,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $form['#tree'] = true;
 
         $config = $this->config('flickr.settings');
-        if ($form_state->get('number-of-users') !== null) { 
+        if ($form_state->get('number-of-users') !== null) {
             // after add button work
             $this->noUsers = $form_state->get('number-of-users');
             if (!isset($this->noUsers)) {
@@ -90,13 +90,29 @@ class FlickrApiSettingForm extends ConfigFormBase {
             '#suffix' => '</div>',
         );
         for ($i = 0; $i < $this->noUsers; $i++) {
+            
             $form['flickr-users']['user-' . $i] = array(
+                '#type' => 'fieldset', 
+            );
+                    
+            $form['flickr-users']['user-' . $i]['account-name'] = array(
                 '#type' => 'textfield',
                 '#title' => $this
                         ->t('Account name #' . ($i + 1) . ':'),
                 //'#required' => TRUE,
                 '#default_value' => $config->get("user-" . $i)
             );
+            if ($this->noUsers > 1) {
+                $form['flickr-users']['user-' . $i]['remove'] = array(
+                    '#type' => 'submit',
+                    '#value' => 'Remove',
+                    '#submit' => ['::removeCallback'],
+                    '#ajax' => array(
+                        'callback' => '::addCallback',
+                        'wrapper' => 'siteCreditsWrapper',
+                    ),
+                );
+            }
         }
 
         $form['flickr-users']['add_person'] = array(
@@ -116,34 +132,27 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     public function submitForm(array &$form, FormStateInterface $form_state) {
-        $this->configFactory->getEditable('flickr.settings')
-                ->set('apikey', $form_state->getValues()['flickr-api-key'])
+        $configFactory = $this->configFactory->getEditable('flickr.settings');
+        $configFactory->set('apikey', $form_state->getValues()['flickr-api-key'])
                 ->set('secret', $form_state->getValues()['flickr-secret'])
                 ->set('frob', $form_state->getValues()['flickr-frob'])
-                ->set('noUsers', $form_state->getValues()['hidden-noUsers'])
+                ->set('noUsers', $form_state->getValues()['hidden-noUsers']);
+                //->save();
         ;
-        print_log($form_state->getValues()['flickr-users']);
         $index = 0;
         foreach ($form_state->getValues()['flickr-users'] as $key => $fuser) {
-            if (strpos($key, "user-") !== false) {
-                $this->configFactory->getEditable('flickr.settings')->set('user-' . $index, $form_state->getValues()['flickr-users']['user-' . $index]);
+            if (strpos($key, "user-") !== false && !empty($fuser)) {
+                $configFactory->set('user-' . $index, $fuser['account-name']);
                 $index++;
             }
         }
-
-        $this->configFactory->getEditable('flickr.settings')->save();
-
-
-
-
+        $configFactory->save();
         parent::submitForm($form, $form_state);
     }
 
     public function adding(array &$form, FormStateInterface $form_state) {
-        print_log(adding);
         $this->noUsers = $form_state->get('number-of-users');
         $this->noUsers++;
-        print_log($this->noUsers);
         $form_state->set('number-of-users', $this->noUsers);
         $form_state->setRebuild();
     }
@@ -159,7 +168,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     public function removeCallback(array &$form, FormStateInterface $form_state) {
-        print_log(removeCallback);
         $flickrUsers = $form_state->get('number-of-users');
         if ($flickrUsers > 1) {
             $flickrUsers--;
