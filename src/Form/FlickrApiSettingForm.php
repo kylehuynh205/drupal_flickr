@@ -36,7 +36,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
-        print_log(buildForm);
 
         $form['#tree'] = true;
 
@@ -90,11 +89,11 @@ class FlickrApiSettingForm extends ConfigFormBase {
             '#suffix' => '</div>',
         );
         for ($i = 0; $i < $this->noUsers; $i++) {
-            
+
             $form['flickr-users']['user-' . $i] = array(
-                '#type' => 'fieldset', 
+                '#type' => 'fieldset',
             );
-                    
+
             $form['flickr-users']['user-' . $i]['account-name'] = array(
                 '#type' => 'textfield',
                 '#title' => $this
@@ -102,28 +101,28 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 //'#required' => TRUE,
                 '#default_value' => $config->get("user-" . $i)
             );
-            if ($this->noUsers > 1) {
-                $form['flickr-users']['user-' . $i]['remove'] = array(
-                    '#type' => 'submit',
-                    '#value' => 'Remove',
-                    '#submit' => ['::removeCallback'],
-                    '#ajax' => array(
-                        'callback' => '::addCallback',
-                        'wrapper' => 'siteCreditsWrapper',
-                    ),
-                );
-            }
         }
 
-        $form['flickr-users']['add_person'] = array(
+        $form['flickr-users']['add-user'] = array(
             '#type' => 'submit',
             '#value' => $this->t('+ Add'),
             '#submit' => ['::adding'],
             '#ajax' => array(
-                'callback' => '::addCallback',
+                'callback' => '::ajaxCallback',
                 'wrapper' => 'flickr-users-wrapper',
             ),
         );
+        if ($this->noUsers > 1) {
+            $form['flickr-users']['remove-user'] = array(
+                '#type' => 'submit',
+                '#value' => '- Remove',
+                '#submit' => ['::removeCallback'],
+                '#ajax' => array(
+                    'callback' => '::ajaxCallback',
+                    'wrapper' => 'flickr-users-wrapper',
+                ),
+            );
+        }
 
         return parent::buildForm($form, $form_state);
     }
@@ -137,7 +136,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 ->set('secret', $form_state->getValues()['flickr-secret'])
                 ->set('frob', $form_state->getValues()['flickr-frob'])
                 ->set('noUsers', $form_state->getValues()['hidden-noUsers']);
-                //->save();
         ;
         $index = 0;
         foreach ($form_state->getValues()['flickr-users'] as $key => $fuser) {
@@ -160,7 +158,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
     /**
      * {@inheritdoc}
      */
-    public function addCallback(array &$form, FormStateInterface $form_state) {
+    public function ajaxCallback(array &$form, FormStateInterface $form_state) {
         return $form['flickr-users'];
     }
 
@@ -168,10 +166,11 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     public function removeCallback(array &$form, FormStateInterface $form_state) {
-        $flickrUsers = $form_state->get('number-of-users');
-        if ($flickrUsers > 1) {
-            $flickrUsers--;
-            $form_state->set('number-of-users', $flickrUsers);
+        $this->noUsers = $form_state->get('number-of-users');
+        if ($this->noUsers > 1) {
+            $configFactory = $this->configFactory->getEditable('flickr.settings');
+            $this->noUsers--;
+            $form_state->set('number-of-users', $this->noUsers);
         }
 
         $form_state->setRebuild();
