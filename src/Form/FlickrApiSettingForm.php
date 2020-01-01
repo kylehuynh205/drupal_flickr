@@ -169,6 +169,8 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $this->noUsers = $form_state->get('number-of-users');
         if ($this->noUsers > 1) {
             $configFactory = $this->configFactory->getEditable('flickr.settings');
+            $configFactory->set('user-' . ($this->noUsers-1), '');
+            $configFactory->save();
             $this->noUsers--;
             $form_state->set('number-of-users', $this->noUsers);
         }
