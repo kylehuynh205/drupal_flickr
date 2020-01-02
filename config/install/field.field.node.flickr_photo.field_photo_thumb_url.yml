@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.storage.node.field_photo_thumb_url
+        - node.type.flickr_photo
+_core:
+    default_config_hash: u2grpmEl0cSO6brgl9DC2dmJNzuXMP0c38Bf4z6DuBo
+id: node.flickr_photo.field_photo_thumb_url
+field_name: field_photo_thumb_url
+entity_type: node
+bundle: flickr_photo
+label: photo_thumb_url
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

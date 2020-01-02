@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.storage.node.field_photo_exif
+        - node.type.flickr_photo
+    module:
+        - text
+_core:
+    default_config_hash: uRScfHPhwTzL4pHuQe7w0DgwA87JHiPjDrQCfiLHtYI
+id: node.flickr_photo.field_photo_exif
+field_name: field_photo_exif
+entity_type: node
+bundle: flickr_photo
+label: photo_exif
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+    display_summary: false
+field_type: text_with_summary

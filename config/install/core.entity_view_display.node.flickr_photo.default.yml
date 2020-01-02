@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.field.node.flickr_photo.body
+        - node.type.flickr_photo
+    module:
+        - text
+        - user
+id: node.flickr_photo.default
+targetEntityType: node
+bundle: flickr_photo
+mode: default
+content:
+    body:
+        label: hidden
+        type: text_default
+        weight: 101
+        settings: {  }
+        third_party_settings: {  }
+    links:
+        weight: 100
+hidden: {  }

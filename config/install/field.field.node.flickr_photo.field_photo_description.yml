@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.storage.node.field_photo_description
+        - node.type.flickr_photo
+    module:
+        - text
+_core:
+    default_config_hash: TKEJw3k4xC4Gs9AHoCOjW8fitDWchnUnAIe4IIeVDGA
+id: node.flickr_photo.field_photo_description
+field_name: field_photo_description
+entity_type: node
+bundle: flickr_photo
+label: Description
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+    display_summary: false
+field_type: text_with_summary

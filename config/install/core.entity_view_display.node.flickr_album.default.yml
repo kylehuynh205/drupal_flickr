@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.field.node.flickr_album.body
+        - node.type.flickr_album
+    module:
+        - text
+        - user
+id: node.flickr_album.default
+targetEntityType: node
+bundle: flickr_album
+mode: default
+content:
+    body:
+        label: hidden
+        type: text_default
+        weight: 101
+        settings: {  }
+        third_party_settings: {  }
+    links:
+        weight: 100
+hidden: {  }

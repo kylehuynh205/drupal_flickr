@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - core.entity_view_mode.node.teaser
+        - field.field.node.flickr_photo.body
+        - node.type.flickr_photo
+    module:
+        - text
+        - user
+id: node.flickr_photo.teaser
+targetEntityType: node
+bundle: flickr_photo
+mode: teaser
+content:
+    body:
+        label: hidden
+        type: text_summary_or_trimmed
+        weight: 101
+        settings:
+            trim_length: 600
+        third_party_settings: {  }
+    links:
+        weight: 100
+hidden: {  }

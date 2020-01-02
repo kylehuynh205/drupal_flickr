@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+    module:
+        - node
+_core:
+    default_config_hash: 1uPJCN2_33glW3F-bLqIZUCxWyOJJ6MoPOBytDq9W2I
+id: node.field_date_last_update
+field_name: field_date_last_update
+entity_type: node
+type: integer
+settings:
+    unsigned: false
+    size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

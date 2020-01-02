@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+    module:
+        - node
+_core:
+    default_config_hash: xfWa3BZGVkJcxgcNk5hK5jA6ttgL_tvMQNQuc9s4a1w
+id: node.field_profileurl
+field_name: field_profileurl
+entity_type: node
+type: string_long
+settings:
+    case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

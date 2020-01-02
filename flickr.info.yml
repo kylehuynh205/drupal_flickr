@@ -3,3 +3,5 @@ type: module
 description: 'Flickr Integration'
 core: 8.x
 package: 'flickr'
+dependencies:
+   - path

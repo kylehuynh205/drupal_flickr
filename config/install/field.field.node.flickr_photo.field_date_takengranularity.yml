@@ -1,0 +1,24 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.storage.node.field_date_takengranularity
+        - node.type.flickr_photo
+_core:
+    default_config_hash: M-4aoxMAAPco3N8yj-y11-1JksISbFZqH3zIQdvEMUQ
+id: node.flickr_photo.field_date_takengranularity
+field_name: field_date_takengranularity
+entity_type: node
+bundle: flickr_photo
+label: 'Date Takengranularity'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+    min: null
+    max: null
+    prefix: ''
+    suffix: ''
+field_type: integer

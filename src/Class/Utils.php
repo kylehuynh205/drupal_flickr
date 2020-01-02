@@ -12,10 +12,9 @@
  * @author kyledeveloper
  */
 
-define('PAGE', 1);
-define('NUMBER_PER_PAGE', 100);
-
 class Utils {
     //put your code here
     
+    const PAGE = 1;
+    const NUMBER_PER_PAGE = 100;
 }
