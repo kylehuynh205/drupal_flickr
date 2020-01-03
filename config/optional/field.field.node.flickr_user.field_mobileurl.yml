@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - field.storage.node.field_mobileurl
+        - node.type.flickr_user
+_core:
+    default_config_hash: u5Q6d7H7kmRWW9YH_w4n6E2wOV5jGajPVVceXorqkxA
+id: node.flickr_user.field_mobileurl
+field_name: field_mobileurl
+entity_type: node
+bundle: flickr_user
+label: mobileurl
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

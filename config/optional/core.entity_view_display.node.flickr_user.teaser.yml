@@ -1,0 +1,40 @@
+langcode: en
+status: true
+dependencies:
+    config:
+        - core.entity_view_mode.node.teaser
+        - field.field.node.flickr_user.field_count
+        - field.field.node.flickr_user.field_description
+        - field.field.node.flickr_user.field_first_date
+        - field.field.node.flickr_user.field_iconfarm
+        - field.field.node.flickr_user.field_iconserver
+        - field.field.node.flickr_user.field_mobileurl
+        - field.field.node.flickr_user.field_nsid
+        - field.field.node.flickr_user.field_photosurl
+        - field.field.node.flickr_user.field_profileurl
+        - field.field.node.flickr_user.field_user_id
+        - field.field.node.flickr_user.field_username
+        - node.type.flickr_user
+    module:
+        - user
+_core:
+    default_config_hash: Fw6cgOIU3mBpOE74jAHRIfNnsWuIqOL3cOracHlmzWg
+id: node.flickr_user.teaser
+targetEntityType: node
+bundle: flickr_user
+mode: teaser
+content:
+    links:
+        weight: 100
+hidden:
+    field_count: true
+    field_description: true
+    field_first_date: true
+    field_iconfarm: true
+    field_iconserver: true
+    field_mobileurl: true
+    field_nsid: true
+    field_photosurl: true
+    field_profileurl: true
+    field_user_id: true
+    field_username: true

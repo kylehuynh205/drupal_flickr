@@ -5,6 +5,8 @@
  * Contains flickr.module.
  */
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Implements hook_help().
@@ -31,6 +33,43 @@ function flickr_theme() {
             'render element' => 'children',
         ],
     ];
+}
+
+/**
+ * Run Download Data Cron
+ */
+function flickr_cron() {
+    print_log("Running Crons");
+    //start_flickr_sync_cron_task();
+    \Drupal::lock()->release('cron');
+}
+
+/**
+ * Run operation of sync with Flickr
+ * 
+ * @param type $form
+ * @param type $form_state
+ */
+function start_flickr_sync_cron_task() {
+    \Drupal::state()->set(Utils::CRON_VARIABLE_FLICKR_PHOTO, 0);
+    // get next tiem 
+    if (\Drupal::service('cron')->run()) {
+        drupal_set_message(t('Cron ran successfully.'));
+        //variable_set(CRON_VARIABLE_FLICKR_PHOTO, time() + FLICKR_CRON_INTERVAL);
+        \Drupal::state()->set(Utils::CRON_VARIABLE_FLICKR_PHOTO, time() + Utils::FLICKR_CRON_INTERVAL);
+    } else {
+        drupal_set_message(t('Cron run failedsafdsadfasd.'), 'error');
+    }
+}
+
+/**
+ * hook_queue_info
+ */
+function flickr_queue_info() {
+    $service = \Drupal::service('flickr.download');
+    $page = 1;
+    $result = $service->rest_get_flickr_photos($service, $page);
+    do_download_all_photos_at_once($service, $result);
 }
 
 /**

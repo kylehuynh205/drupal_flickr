@@ -1,0 +1,7 @@
+services:
+  logger.channel.flickr:
+    parent: logger.channel_base
+    arguments: ['flickr']
+  flickr.download:
+    class: Drupal\flickr\DownloadService
+    arguments: []
