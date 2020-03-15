@@ -36,7 +36,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * {@inheritdoc}
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
-
         $form['#tree'] = true;
 
         $config = $this->config('flickr.settings');
@@ -124,12 +123,60 @@ class FlickrApiSettingForm extends ConfigFormBase {
             );
         }
 
-        return parent::buildForm($form, $form_state);
+        $form = parent::buildForm($form, $form_state);
+
+        $form['container-download'] = array(
+            '#type' => 'fieldset',
+            '#title' => $this->t('Download Operations:'),
+        );
+        $form['container-download']['download-photos'] = array(
+            '#type' => 'submit',
+            '#name' => 'download-photo',
+            '#value' => $this->t("Pull Photo Data"),
+            '#submit' => array(array($this, 'submitDownloadPhotos'))
+        );
+        $form['container-download']['download-flickr-photoset'] = array(
+            '#type' => 'submit',
+            '#name' => 'download-flickr-photoset',
+            '#value' => $this->t('Pull PhotoSets'),
+            '#submit' => array(array($this, 'submitDownloadPhotoSets'))
+        );
+
+
+        return $form;
     }
 
     /**
      * {@inheritdoc}
      */
+    public function submitDownloadPhotos(array &$form, FormStateInterface $form_state) {
+
+        $service = \Drupal::service('flickr.download');
+        $page = 1;
+        $result = $service->rest_get_flickr_photos($service, $page);
+
+        // get total existed photos on Flickr server 
+        $total_photos = $result->photos->total;
+
+        // get total pages of photos
+        $total_pages = $result->photos->pages;
+
+        $operations = array();
+        while ($page <= $total_pages) {
+            $result = $service->rest_get_flickr_photos($service, $page);
+
+            $fphotos = $result->photos->photo;
+            // each page loop 
+            foreach ($fphotos as $photo) {
+                array_push($operations, array('\Drupal\flickr\Form\FlickrApiSettingForm::callbackOperation', array($photo)));
+            }
+            $page ++;
+        }
+        \Drupal\flickr\Classes\BatchOp::start(
+                "Download Photos Data from Flickr", "Connecting ...", "Download ....", "Download unsuccessfully", $operations, '\Drupal\flickr\Form\FlickrApiSettingForm::callbackOperationEnd'
+        );
+    }
+
     public function submitForm(array &$form, FormStateInterface $form_state) {
         $configFactory = $this->configFactory->getEditable('flickr.settings');
         $configFactory->set('apikey', $form_state->getValues()['flickr-api-key'])
@@ -169,13 +216,102 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $this->noUsers = $form_state->get('number-of-users');
         if ($this->noUsers > 1) {
             $configFactory = $this->configFactory->getEditable('flickr.settings');
-            $configFactory->set('user-' . ($this->noUsers-1), '');
+            $configFactory->set('user-' . ($this->noUsers - 1), '');
             $configFactory->save();
             $this->noUsers--;
             $form_state->set('number-of-users', $this->noUsers);
         }
 
         $form_state->setRebuild();
+    }
+
+    public function callbackOperation($photo, &$context) {
+        $photo_exif = \Drupal\flickr\Classes\Utils::get_photo_exif_content($photo->id);
+        $service = \Drupal::service('flickr.download');
+        $photo_info = $service->rest_get_flickr_photo_info($photo->id);
+
+        $found_ids = \Drupal::entityQuery('node')
+                ->condition('type', 'flickr_photo')
+                ->condition('field_photo_id', $photo->id)
+                ->execute();
+
+        $photo_node = $photo_info->photo;
+        if (count($found_ids) == 0) {
+            //print_log("Download and insert in page " . $page);
+            $thumbnail = "http://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_z.jpg";
+            $bigphoto = "http://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_b.jpg";
+            //$bigphoto = "http://c2.staticflickr.com/".$photo_node->farm ."/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_t.jpg";
+            $orig_photo = "https://www.flickr.com/photos/" . $photo_node->owner->nsid . "/" . $photo_node->id . "/sizes/o/";
+
+            \Drupal\node\Entity\Node::create(array(
+                'type' => 'flickr_photo',
+                'title' => ($photo_node->title->_content != null) ? $photo_node->title->_content : " ",
+                'field_photo_description' => $photo_node->description->_content,
+                'field_photo_id' => $photo_node->id,
+                'field_secret' => $photo_node->secret,
+                'field_server' => $photo_node->server,
+                'field_farm' => $photo_node->farm,
+                'field_date_uploaded' => $photo_node->dateuploaded,
+                'field_owner' => $photo_node->owner->nsid,
+                'field_ispublic' => $photo_node->visibility->ispublic,
+                'field_isfriend' => $photo_node->visibility->isfriend,
+                'field_isfamily' => $photo_node->visibility->isfamily,
+                'field_date_last_update' => $photo_node->dates->lastupdate,
+                'field_date_taken' => $photo_node->dates->taken,
+                'field_date_takengranularity' => $photo_node->dates->takengranularity,
+                'field_date_taken_unknown' => $photo_node->dates->takenunknown,
+                'field_views' => $photo_node->views,
+                'field_photopage_url' => $photo_node->urls->url[0]->_content,
+                'field_photo_big_url' => $bigphoto,
+                'field_photo_thumb_url' => $thumbnail,
+                'field_photo_org_url' => $orig_photo,
+                'field_photo_exif' => $photo_exif,
+            ))->save();
+        } else {
+            foreach ($found_ids as $key => $value) {
+                $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                //$node->set('title', ($photo_node->title->_content != null) ? $photo_node->title->_content : " ");
+                //$node->set('field_photo_description', $photo_node->description->_content);
+                $node->set('field_photo_id', $photo_node->id);
+                $node->set('field_secret', $photo_node->secret);
+                $node->set('field_server', $photo_node->server);
+                $node->set('field_farm', $photo_node->farm);
+                $node->set('field_date_uploaded', $photo_node->dateuploaded);
+                $node->set('field_owner', $photo_node->owner->nsid);
+                $node->set('field_ispublic', $photo_node->visibility->ispublic);
+                $node->set('field_isfriend', $photo_node->visibility->isfriend);
+                $node->set('field_isfamily', $photo_node->visibility->isfamily);
+                $node->set('field_date_last_update', $photo_node->dates->lastupdate);
+                $node->set('field_date_taken', $photo_node->dates->taken);
+                $node->set('field_date_takengranularity', $photo_node->dates->takengranularity);
+                $node->set('field_date_taken_unknown', $photo_node->dates->takenunknown);
+                $node->set('field_views', $photo_node->views);
+                $node->set('field_photopage_url', $photo_node->urls->url[0]->_content);
+                $node->set('field_photo_big_url', $bigphoto);
+                $node->set('field_photo_thumb_url', $thumbnail);
+                $node->set('field_photo_org_url', $orig_photo);
+                $node->set('field_photo_exif', " UPDATE" . $photo_exif);
+                $node->save();
+            }
+        }
+    }
+
+    public function callbackOperationEnd($success, $results, $operations) {
+        if ($success) {
+            $message = \Drupal::translation()
+                    ->formatPlural(count($results), 'One Photo synced.', '@count Photos synced.');
+        } else {
+            $message = t('Sync processes finished with an error.');
+        }
+        drupal_set_message($message);
+
+        // Providing data for the redirected page is done through $_SESSION.
+        foreach ($results as $key => $value) {
+            $items[] = t('Synced applicant %sisid.', array(
+                '%sisid' => $key,
+            ));
+        }
+        $_SESSION['my_batch_results'] = $items;
     }
 
 }
