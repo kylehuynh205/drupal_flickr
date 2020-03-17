@@ -125,56 +125,28 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
         $form = parent::buildForm($form, $form_state);
 
-        $form['container-download'] = array(
-            '#type' => 'fieldset',
-            '#title' => $this->t('Download Operations:'),
-        );
-        $form['container-download']['download-photos'] = array(
-            '#type' => 'submit',
-            '#name' => 'download-photo',
-            '#value' => $this->t("Pull Photo Data"),
-            '#submit' => array(array($this, 'submitDownloadPhotos'))
-        );
-        $form['container-download']['download-flickr-photoset'] = array(
-            '#type' => 'submit',
-            '#name' => 'download-flickr-photoset',
-            '#value' => $this->t('Pull PhotoSets'),
-            '#submit' => array(array($this, 'submitDownloadPhotoSets'))
-        );
+        if (isset($config)) {
+            $form['container-download'] = array(
+                '#type' => 'fieldset',
+                '#title' => $this->t('Download Operations:'),
+            );
+            $form['container-download']['download-photos'] = array(
+                '#type' => 'submit',
+                '#name' => 'download-photo',
+                '#value' => $this->t("Pull Photo Data"),
+                '#submit' => array(array($this, 'submitDownloadPhotos'))
+            );
+            $form['container-download']['download-flickr-photoset'] = array(
+                '#type' => 'submit',
+                '#name' => 'download-flickr-photoset',
+                '#value' => $this->t('Pull PhotoSets'),
+                '#submit' => array(array($this, 'submitDownloadPhotoSets'))
+            );
+        }
+
 
 
         return $form;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function submitDownloadPhotos(array &$form, FormStateInterface $form_state) {
-
-        $service = \Drupal::service('flickr.download');
-        $page = 1;
-        $result = $service->rest_get_flickr_photos($service, $page);
-
-        // get total existed photos on Flickr server 
-        $total_photos = $result->photos->total;
-
-        // get total pages of photos
-        $total_pages = $result->photos->pages;
-
-        $operations = array();
-        while ($page <= $total_pages) {
-            $result = $service->rest_get_flickr_photos($service, $page);
-
-            $fphotos = $result->photos->photo;
-            // each page loop 
-            foreach ($fphotos as $photo) {
-                array_push($operations, array('\Drupal\flickr\Form\FlickrApiSettingForm::callbackOperation', array($photo)));
-            }
-            $page ++;
-        }
-        \Drupal\flickr\Classes\BatchOp::start(
-                "Download Photos Data from Flickr", "Connecting ...", "Download ....", "Download unsuccessfully", $operations, '\Drupal\flickr\Form\FlickrApiSettingForm::callbackOperationEnd'
-        );
     }
 
     public function submitForm(array &$form, FormStateInterface $form_state) {
@@ -225,7 +197,97 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $form_state->setRebuild();
     }
 
-    public function callbackOperation($photo, &$context) {
+    /**
+     * Submit form handler download photo sets
+     * 
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
+    public function submitDownloadPhotoSets(array &$form, FormStateInterface $form_state) {
+        // Create vocabulary as photoset
+        $vocabulary = \Drupal\flickr\Classes\Utils::createVocabulary("photosets", "Photo Sets", "Album");
+
+        // Create photoset as term under vocabulary photoset
+        $service = \Drupal::service('flickr.download');
+        $result = $service->rest_get_flickr_photo_set($service, 1);
+        $operations = array();
+        foreach ($result->photosets->photoset as $photoset) {
+            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary ,'set' => $photoset])));
+        }
+
+        \Drupal\flickr\Classes\BatchOp::start(
+                "Pull Photoset and create vocabularies",
+                "Connecting ...",
+                "Updating ....",
+                "Update unsuccessfully",
+                $operations,
+                '\Drupal\flickr\Form\FlickrAPISettingForm::callbackOperationEnd');
+    }
+
+    public function callbackDownloadPhotoSetOperation($data, &$context) {
+        \Drupal\flickr\Classes\Utils::createTerm(
+                $data['vocal'], 
+                $data['set']->id, 
+                \Drupal\flickr\Classes\Utils::createSlug($data['set']->title->_content, '_'), 
+                $data['set']->description->_content);
+    }
+
+    public function callbackDownloadPhotoSetOperationEnd($success, $results, $operations) {
+        if ($success) {
+            $message = \Drupal::translation()
+                    ->formatPlural(count($results), 'One Photosets synced.', '@count PhotoSets synced.');
+        } else {
+            $message = t('Sync processes finished with an error.');
+        }
+        drupal_set_message($message);
+
+        // Providing data for the redirected page is done through $_SESSION.
+        foreach ($results as $key => $value) {
+            $items[] = t('Synced applicant %sisid.', array(
+                '%sisid' => $key,
+            ));
+        }
+        $_SESSION['my_batch_results'] = $items;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitDownloadPhotos(array &$form, FormStateInterface $form_state) {
+
+        $service = \Drupal::service('flickr.download');
+        $page = 1;
+        $result = $service->rest_get_flickr_photos($service, $page);
+
+        // get total existed photos on Flickr server 
+        $total_photos = $result->photos->total;
+
+        // get total pages of photos
+        $total_pages = $result->photos->pages;
+
+        $operations = array();
+        while ($page <= $total_pages) {
+            $result = $service->rest_get_flickr_photos($service, $page);
+
+            $fphotos = $result->photos->photo;
+            // each page loop 
+            foreach ($fphotos as $photo) {
+                array_push($operations, array('\Drupal\flickr\Form\FlickrApiSettingForm::callbackDownloadPhotoOperation', array($photo)));
+            }
+            $page ++;
+        }
+        \Drupal\flickr\Classes\BatchOp::start(
+                "Download Photos Data from Flickr", "Connecting ...", "Download ....", "Download unsuccessfully", $operations, '\Drupal\flickr\Form\FlickrApiSettingForm::callbackDownloadPhotoOperationEnd'
+        );
+    }
+
+    /**
+     * Download Photo Operation callback
+     * 
+     * @param type $photo
+     * @param type $context
+     */
+    public function callbackDownloadPhotoOperation($photo, &$context) {
         $photo_exif = \Drupal\flickr\Classes\Utils::get_photo_exif_content($photo->id);
         $service = \Drupal::service('flickr.download');
         $photo_info = $service->rest_get_flickr_photo_info($photo->id);
@@ -296,7 +358,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         }
     }
 
-    public function callbackOperationEnd($success, $results, $operations) {
+    public function callbackDownloadPhotoOperationEnd($success, $results, $operations) {
         if ($success) {
             $message = \Drupal::translation()
                     ->formatPlural(count($results), 'One Photo synced.', '@count Photos synced.');
