@@ -23,7 +23,7 @@ class Utils {
     const CRON_VARIABLE_FLICKR_PHOTO = "flickr_photo_next_sync";
 
     public static function getRole() {
-        return array('id' => 'flickr_user', 'label' => 'Flickr User');
+        return array('id' => 'flickr_user', 'label' => 'Photographer');
     }
 
     
@@ -192,7 +192,7 @@ class Utils {
                 foreach ($ids as $key => $value) {
                     $user = \Drupal\user\Entity\User::load($value);
 
-                    if (!empty($params['description'])) {
+                    /*if (!empty($params['description'])) {
                         $user->get('field_biography')->setValue($params['description']);
                     } else {
                         $user->get('field_biography')->setValue("");
@@ -202,7 +202,7 @@ class Utils {
                     $first_name = implode(" ", $words);
 
                     $user->get('field_first_name')->setValue($first_name);
-                    $user->get('field_last_name')->setValue($last_name);
+                    $user->get('field_last_name')->setValue($last_name);*/
                     
                     // add role
                     if (isset($role) && Utils::isRoleExisted($role)) { 

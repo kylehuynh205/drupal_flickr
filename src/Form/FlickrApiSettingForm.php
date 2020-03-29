@@ -91,6 +91,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
             $form['flickr-users']['user-' . $i] = array(
                 '#type' => 'fieldset',
+                '#attributes' => array('style' => 'padding-bottom:20px;')
             );
 
             $form['flickr-users']['user-' . $i]['account-name'] = array(
@@ -100,6 +101,29 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 //'#required' => TRUE,
                 '#default_value' => $config->get("user-" . $i)
             );
+
+            if (isset($config) && $config->get("user-" . $i) !== null) {
+                $form['flickr-users']['user-' . $i]['download-flickr-users'] = array(
+                    '#type' => 'submit',
+                    '#name' => $config->get("user-" . $i) . '-download-user-data',
+                    '#value' => $this->t('Download User Data'),
+                    '#submit' => array(array($this, 'submitDownloadFlickrUser')),
+                    '#description' => 'Add fields: biography, first name, last name'
+                );
+
+                $form['flickr-users']['user-' . $i]['download-photos'] = array(
+                    '#type' => 'submit',
+                    '#name' => $config->get("user-" . $i) . '-download-photo',
+                    '#value' => $this->t("Download Photos"),
+                    '#submit' => array(array($this, 'submitDownloadPhotos'))
+                );
+                $form['flickr-users']['user-' . $i]['download-flickr-photoset'] = array(
+                    '#type' => 'submit',
+                    '#name' => $config->get("user-" . $i) . '-download-photo-set',
+                    '#value' => $this->t('Download PhotoSets'),
+                    '#submit' => array(array($this, 'submitDownloadPhotoSets'))
+                );
+            }
         }
 
         $form['flickr-users']['add-user'] = array(
@@ -124,34 +148,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
         }
 
         $form = parent::buildForm($form, $form_state);
-
-        if (isset($config)) {
-            $form['container-download']['download-flickr-users'] = array(
-                '#type' => 'submit',
-                '#name' => 'download-flickr-users',
-                '#value' => $this->t('Pull Users'),
-                '#submit' => array(array($this, 'submitDownloadFlickrUser'))
-            );
-            $form['container-download'] = array(
-                '#type' => 'fieldset',
-                '#title' => $this->t('Download Operations:'),
-            );
-            $form['container-download']['download-photos'] = array(
-                '#type' => 'submit',
-                '#name' => 'download-photo',
-                '#value' => $this->t("Pull Photo Data"),
-                '#submit' => array(array($this, 'submitDownloadPhotos'))
-            );
-            $form['container-download']['download-flickr-photoset'] = array(
-                '#type' => 'submit',
-                '#name' => 'download-flickr-photoset',
-                '#value' => $this->t('Pull PhotoSets'),
-                '#submit' => array(array($this, 'submitDownloadPhotoSets'))
-            );
-        }
-
-
-
         return $form;
     }
 
@@ -210,16 +206,13 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * @param FormStateInterface $form_state
      */
     public function submitDownloadFlickrUser(array &$form, FormStateInterface $form_state) {
-        print_log(submitDownloadFlickrUser);
+        $parts = explode('-', $form_state->getTriggeringElement()['#name']);
+        $user_id = $parts[0];
+        
         $config = $this->config('flickr.settings');
         $operations = array();
 
-        $index = 0;
-        while ($config->get('user-' . $index) !== null && !empty($config->get('user-' . $index))) {
-            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadFlickrUserOperation', array($config->get('user-' . $index))));
-
-            $index ++;
-        }
+        array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadFlickrUserOperation', array($user_id)));
 
         \Drupal\flickr\Classes\BatchOp::start(
                 "Creating Users based from Registered Flickr Users",
@@ -256,9 +249,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
         // Create vocabulary as photoset
         $vocabulary = \Drupal\flickr\Classes\Utils::createVocabulary("photosets", "Photo Sets", "Album");
 
+        $parts = explode('-', $form_state->getTriggeringElement()['#name']);
+        $user_id = $parts[0];
+
         // Create photoset as term under vocabulary photoset
         $service = \Drupal::service('flickr.download');
-        $result = $service->rest_get_flickr_photo_set($service, 1);
+        $result = $service->rest_get_flickr_photo_set($service, $user_id, 1);
         $operations = array();
         foreach ($result->photosets->photoset as $photoset) {
             array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary, 'set' => $photoset])));
@@ -304,6 +300,9 @@ class FlickrApiSettingForm extends ConfigFormBase {
      */
     public function submitDownloadPhotos(array &$form, FormStateInterface $form_state) {
 
+        $parts = explode('-', $form_state->getTriggeringElement()['#name']);
+        $user_id = $parts[0];
+
         $page = 1;
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_photos($service, $page);
@@ -347,6 +346,9 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 ->execute();
 
         $photo_node = $photo_info->photo;
+        $owner = user_load_by_mail($photo_node->owner->nsid . "@photo.kylehuynh.com");
+
+
         if (count($found_ids) == 0) {
             //print_log("Download and insert in page " . $page);
             $thumbnail = "http://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_z.jpg";
@@ -377,6 +379,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 'field_photo_thumb_url' => $thumbnail,
                 'field_photo_org_url' => $orig_photo,
                 'field_photo_exif' => $photo_exif,
+                'uid' => $owner->id()
             ))->save();
         } else {
             foreach ($found_ids as $key => $value) {
@@ -402,6 +405,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 $node->set('field_photo_thumb_url', $thumbnail);
                 $node->set('field_photo_org_url', $orig_photo);
                 $node->set('field_photo_exif', " UPDATE" . $photo_exif);
+                $node->setOwner($owner);
                 $node->save();
             }
         }
