@@ -126,6 +126,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $form = parent::buildForm($form, $form_state);
 
         if (isset($config)) {
+            $form['container-download']['download-flickr-users'] = array(
+                '#type' => 'submit',
+                '#name' => 'download-flickr-users',
+                '#value' => $this->t('Pull Users'),
+                '#submit' => array(array($this, 'submitDownloadFlickrUser'))
+            );
             $form['container-download'] = array(
                 '#type' => 'fieldset',
                 '#title' => $this->t('Download Operations:'),
@@ -198,6 +204,49 @@ class FlickrApiSettingForm extends ConfigFormBase {
     }
 
     /**
+     * Download Flickr user and create Drupal User
+     * 
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
+    public function submitDownloadFlickrUser(array &$form, FormStateInterface $form_state) {
+        print_log(submitDownloadFlickrUser);
+        $config = $this->config('flickr.settings');
+        $operations = array();
+
+        $index = 0;
+        while ($config->get('user-' . $index) !== null && !empty($config->get('user-' . $index))) {
+            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadFlickrUserOperation', array($config->get('user-' . $index))));
+
+            $index ++;
+        }
+
+        \Drupal\flickr\Classes\BatchOp::start(
+                "Creating Users based from Registered Flickr Users",
+                "Connecting ...",
+                "Updating ....",
+                "Update unsuccessfully",
+                $operations,
+                '\Drupal\yublog_migration\Form\MigrationForm::callbackOperationEnd'
+        );
+    }
+
+    public function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
+        $service = \Drupal::service('flickr.download');
+        $result = $service->rest_get_flickr_user($flickrUserID);
+
+        $params = array(
+            'ID' => time(),
+            'user_login' => $result->person->username->_content,
+            'user_pass' => base64_encode('0o9i8u7y'),
+            'user_email' => $result->person->id . '@photo.kylehuynh.com',
+            'display-name' => $result->person->username->_content
+        );
+
+        \Drupal\flickr\Classes\Utils::createUser($params, \Drupal\flickr\Classes\Utils::getRole()['id']);
+    }
+
+    /**
      * Submit form handler download photo sets
      * 
      * @param array $form
@@ -212,7 +261,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $result = $service->rest_get_flickr_photo_set($service, 1);
         $operations = array();
         foreach ($result->photosets->photoset as $photoset) {
-            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary ,'set' => $photoset])));
+            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary, 'set' => $photoset])));
         }
 
         \Drupal\flickr\Classes\BatchOp::start(
@@ -226,9 +275,9 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
     public function callbackDownloadPhotoSetOperation($data, &$context) {
         \Drupal\flickr\Classes\Utils::createTerm(
-                $data['vocal'], 
-                $data['set']->id, 
-                \Drupal\flickr\Classes\Utils::createSlug($data['set']->title->_content, '_'), 
+                $data['vocal'],
+                $data['set']->id,
+                \Drupal\flickr\Classes\Utils::createSlug($data['set']->title->_content, '_'),
                 $data['set']->description->_content);
     }
 
@@ -255,8 +304,8 @@ class FlickrApiSettingForm extends ConfigFormBase {
      */
     public function submitDownloadPhotos(array &$form, FormStateInterface $form_state) {
 
-        $service = \Drupal::service('flickr.download');
         $page = 1;
+        $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_photos($service, $page);
 
         // get total existed photos on Flickr server 

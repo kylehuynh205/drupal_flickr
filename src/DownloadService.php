@@ -14,10 +14,10 @@ class DownloadService {
         
     }
 
-    public function rest_get_flickr_user() {
+    public function rest_get_flickr_user($user_id) {
         $config = \Drupal::config('flickr.settings');
         
-        $response = \Drupal::httpClient()->get("https://api.flickr.com/services/rest/?method=flickr.people.getInfo&api_key=" . $config->get("apikey") . "&user_id=" . $config->get("user-0") . "&format=json&nojsoncallback=1");
+        $response = \Drupal::httpClient()->get("https://api.flickr.com/services/rest/?method=flickr.people.getInfo&api_key=" . $config->get("apikey") . "&user_id=" . $user_id . "&format=json&nojsoncallback=1");
         return json_decode((string) $response->getBody());
     }
 

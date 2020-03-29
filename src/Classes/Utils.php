@@ -22,6 +22,42 @@ class Utils {
     const FLICKR_CRON_INTERVAL = 86400;
     const CRON_VARIABLE_FLICKR_PHOTO = "flickr_photo_next_sync";
 
+    public static function getRole() {
+        return array('id' => 'flickr_user', 'label' => 'Flickr User');
+    }
+
+    
+      /**
+     * check if the role exist in the system
+     * @param type $role_name
+     * @return type
+     * @throws Exception
+     */
+    public static function isRoleExisted($role_name) {
+        if (!isset($role_name) || empty($role_name)) {
+            throw new \Exception("Role name parameter must not NULL");
+        }
+        return array_key_exists($role_name, \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple());
+    }
+
+    /**
+     * Create role by default for module by name
+     * execute when module installed 
+     * 
+     * @param type $role_name
+     * @throws Exception
+     */
+    public static function createRole($role_name) {
+        if (!isset($role_name) || empty($role_name) && !is_array($role_name)) {
+            throw new \Exception("Role name parameter must not NULL");
+        }
+        $role = \Drupal\user\Entity\Role::create($role_name);
+        $role->grantPermission('access toolbar');
+        $role->grantPermission('view the administration theme');
+        $role->save();
+    }
+
+    
     /**
      * Convert Exif data to string
      * @param type $photo_id
@@ -133,7 +169,7 @@ class Utils {
       'user_email' =>
       )
      */
-    public static function createUser($params) {
+    public static function createUser($params, $role = null) {
         try {
             $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
             $user = \Drupal\user\Entity\User::create();
@@ -167,6 +203,11 @@ class Utils {
 
                     $user->get('field_first_name')->setValue($first_name);
                     $user->get('field_last_name')->setValue($last_name);
+                    
+                    // add role
+                    if (isset($role) && Utils::isRoleExisted($role)) { 
+                        $user->addRole($role);
+                    }
                     $user->save();
                 }
             } else {
@@ -195,6 +236,11 @@ class Utils {
 
                     $user->get('field_first_name')->setValue($first_name);
                     $user->get('field_last_name')->setValue($last_name);
+                    
+                    // add role
+                    if (isset($role) && Utils::isRoleExisted($role)) { 
+                        $user->addRole($role);
+                    }
                     $user->save();
                 }
             } else {

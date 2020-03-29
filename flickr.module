@@ -85,3 +85,23 @@ function logging($thing) {
     print_r($thing);
     echo '</pre>';
 }
+
+/**
+ * Hook_install
+ */
+function flickr_install() {
+
+    // create role for module 
+    if (!\Drupal\flickr\Classes\Utils::isRoleExisted(Drupal\flickr\classes\Utils::getRole()['id'])) {
+        \Drupal\flickr\Classes\Utils::createRole(Drupal\flickr\classes\Utils::getRole());
+    }
+}
+
+/**
+ * Hook uninstall
+ */
+function flickr_uninstall() {
+
+    // delete exclusive role of the module
+    \Drupal\flickr\Classes\Utils::deleteRole(Drupal\flickr\classes\Utils::getRole()['id']);
+}
