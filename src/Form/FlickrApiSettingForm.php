@@ -62,22 +62,22 @@ class FlickrApiSettingForm extends ConfigFormBase {
             '#title' => $this
                     ->t('API Key:'),
             //'#required' => TRUE,
-            '#default_value' => $config->get("apikey")
+            '#default_value' => ($config->get("apikey") !== null) ? $config->get("apikey") : \Drupal\flickr\Classes\Utils::DEFAULT_API_KEY
         );
         $form['flickr-secret'] = array(
             '#type' => 'textfield',
             '#title' => $this
                     ->t('Secret:'),
             //'#required' => TRUE,
-            '#default_value' => $config->get("secret")
+            '#default_value' => ($config->get("secret") !== null) ? $config->get("apikey") : \Drupal\flickr\Classes\Utils::DEFAULT_SECRET
         );
-        $form['flickr-frob'] = array(
+        /*$form['flickr-frob'] = array(
             '#type' => 'textfield',
             '#title' => $this
                     ->t('FROB:'),
             //'#required' => TRUE,
             '#default_value' => $config->get("frob")
-        );
+        );*/
 
 
         // need multiple field for user
@@ -305,7 +305,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
         $page = 1;
         $service = \Drupal::service('flickr.download');
-        $result = $service->rest_get_flickr_photos($service, $page);
+        $result = $service->rest_get_flickr_photos($service, $user_id,$page);
 
         // get total existed photos on Flickr server 
         $total_photos = $result->photos->total;
@@ -315,7 +315,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
         $operations = array();
         while ($page <= $total_pages) {
-            $result = $service->rest_get_flickr_photos($service, $page);
+            $result = $service->rest_get_flickr_photos($service,$user_id, $page);
 
             $fphotos = $result->photos->photo;
             // each page loop 

@@ -22,6 +22,9 @@ class Utils {
     const FLICKR_CRON_INTERVAL = 86400;
     const CRON_VARIABLE_FLICKR_PHOTO = "flickr_photo_next_sync";
 
+    const DEFAULT_API_KEY = 'dad4f85b8591e6475b468f0c7e8feb88';
+    const DEFAULT_SECRET = '33e5294e113a9c0b';
+    
     public static function getRole() {
         return array('id' => 'flickr_user', 'label' => 'Photographer');
     }
