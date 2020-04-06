@@ -21,16 +21,14 @@ class Utils {
     const NUMBER_PER_PAGE = 100;
     const FLICKR_CRON_INTERVAL = 86400;
     const CRON_VARIABLE_FLICKR_PHOTO = "flickr_photo_next_sync";
-
     const DEFAULT_API_KEY = 'dad4f85b8591e6475b468f0c7e8feb88';
     const DEFAULT_SECRET = '33e5294e113a9c0b';
-    
+
     public static function getRole() {
         return array('id' => 'flickr_user', 'label' => 'Photographer');
     }
 
-    
-      /**
+    /**
      * check if the role exist in the system
      * @param type $role_name
      * @return type
@@ -60,7 +58,6 @@ class Utils {
         $role->save();
     }
 
-    
     /**
      * Convert Exif data to string
      * @param type $photo_id
@@ -111,7 +108,6 @@ class Utils {
     }
 
     public static function createSlug($str, $delimiter = '-') {
-        print_log($str);
         $slug = strtolower(trim(preg_replace('/[\s-]+/', $delimiter, preg_replace('/[^A-Za-z0-9-]+/', $delimiter, preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $str))))), $delimiter));
         return $slug;
     }
@@ -125,7 +121,6 @@ class Utils {
      * @param type $desc
      */
     public static function createTerm($vid, $tid, $name, $desc, $parentTermId = null) {
-        print_log($desc);
 
         if (empty($vid)) {
             throw new InvalidArgumentException("vocabulary must be valid");
@@ -136,29 +131,44 @@ class Utils {
         if (empty($name)) {
             throw new InvalidArgumentException("name must be valid");
         }
-       
+        $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid, 0, NULL, TRUE);
+        $existed = self::isTermExisted($name, $terms);
+        
+        if ( $existed === false) {
+            //With options
+            $options = [
+                'vid' => $vid,
+                'name' => $name,
+                'description' => [
+                    'value' => '<p>' . $desc . '</p>',
+                    'format' => 'full_html',
+                ],
+            ];
+            if (isset($parentTermId))
+                $options['parent'] = array($parentTermId);
 
-        //With options
-        $options = [
-            'vid' => $vid,
-            'name' => $name,
-            'description' => [
-                'value' => '<p>' . $desc . '</p>',
-                'format' => 'full_html',
-            ],
-        ];
-        if (isset($parentTermId))
-            $options['parent'] = array($parentTermId);
-
-        $term = \Drupal\taxonomy\Entity\Term::create($options)->save();
-
-
-        /* $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid, 0, NULL, TRUE);
-          print_r($terms);
-          $query = \Drupal::entityQuery('taxonomy_term');
-          $query->condition('vid', 'parent_' . $created_at);
-          $tids = $query->execute();
-          print_log($tids); */
+            $term = \Drupal\taxonomy\Entity\Term::create($options)->save();
+            return $term;
+        }
+        return $existed;
+    }
+    
+    /**
+     * Check the term existed 
+     * 
+     * @param string $name
+     * @param array $terms
+     * @return boolean
+     */
+    public static function isTermExisted(string $name, array $terms) {
+        $flag = false;
+        foreach ($terms as $term) { 
+            if ($term->getName() === $name) { 
+                $flag = $term->id();
+                break;
+            }
+        }
+        return $flag;
     }
 
     /**
@@ -195,20 +205,20 @@ class Utils {
                 foreach ($ids as $key => $value) {
                     $user = \Drupal\user\Entity\User::load($value);
 
-                    /*if (!empty($params['description'])) {
-                        $user->get('field_biography')->setValue($params['description']);
-                    } else {
-                        $user->get('field_biography')->setValue("");
-                    }
-                    $words = explode(' ', $params['display_name']);
-                    $last_name = array_pop($words);
-                    $first_name = implode(" ", $words);
+                    /* if (!empty($params['description'])) {
+                      $user->get('field_biography')->setValue($params['description']);
+                      } else {
+                      $user->get('field_biography')->setValue("");
+                      }
+                      $words = explode(' ', $params['display_name']);
+                      $last_name = array_pop($words);
+                      $first_name = implode(" ", $words);
 
-                    $user->get('field_first_name')->setValue($first_name);
-                    $user->get('field_last_name')->setValue($last_name);*/
-                    
+                      $user->get('field_first_name')->setValue($first_name);
+                      $user->get('field_last_name')->setValue($last_name); */
+
                     // add role
-                    if (isset($role) && Utils::isRoleExisted($role)) { 
+                    if (isset($role) && Utils::isRoleExisted($role)) {
                         $user->addRole($role);
                     }
                     $user->save();
@@ -228,20 +238,20 @@ class Utils {
                 foreach ($ids as $key => $value) {
                     $user = \Drupal\user\Entity\User::load($value);
 
-                    if (!empty($params['description'])) {
-                        $user->get('field_biography')->setValue($params['description']);
-                    } else {
-                        $user->get('field_biography')->setValue("");
-                    }
-                    $words = explode(' ', $params['display_name']);
-                    $last_name = array_pop($words);
-                    $first_name = implode(" ", $words);
+                    /* if (!empty($params['description'])) {
+                      $user->get('field_biography')->setValue($params['description']);
+                      } else {
+                      $user->get('field_biography')->setValue("");
+                      }
+                      $words = explode(' ', $params['display_name']);
+                      $last_name = array_pop($words);
+                      $first_name = implode(" ", $words);
 
-                    $user->get('field_first_name')->setValue($first_name);
-                    $user->get('field_last_name')->setValue($last_name);
-                    
+                      $user->get('field_first_name')->setValue($first_name);
+                      $user->get('field_last_name')->setValue($last_name); */
+
                     // add role
-                    if (isset($role) && Utils::isRoleExisted($role)) { 
+                    if (isset($role) && Utils::isRoleExisted($role)) {
                         $user->addRole($role);
                     }
                     $user->save();

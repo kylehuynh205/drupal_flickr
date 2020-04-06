@@ -71,13 +71,13 @@ class FlickrApiSettingForm extends ConfigFormBase {
             //'#required' => TRUE,
             '#default_value' => ($config->get("secret") !== null) ? $config->get("apikey") : \Drupal\flickr\Classes\Utils::DEFAULT_SECRET
         );
-        /*$form['flickr-frob'] = array(
-            '#type' => 'textfield',
-            '#title' => $this
-                    ->t('FROB:'),
-            //'#required' => TRUE,
-            '#default_value' => $config->get("frob")
-        );*/
+        /* $form['flickr-frob'] = array(
+          '#type' => 'textfield',
+          '#title' => $this
+          ->t('FROB:'),
+          //'#required' => TRUE,
+          '#default_value' => $config->get("frob")
+          ); */
 
 
         // need multiple field for user
@@ -121,6 +121,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
                     '#type' => 'submit',
                     '#name' => $config->get("user-" . $i) . '-download-photo-set',
                     '#value' => $this->t('Download PhotoSets'),
+                    '#submit' => array(array($this, 'submitDownloadPhotoSets'))
+                );
+                $form['flickr-users']['user-' . $i]['link-photo-photoset'] = array(
+                    '#type' => 'submit',
+                    '#name' => $config->get("user-" . $i) . '-download-photo-set',
+                    '#value' => $this->t('Add photos to PhotoSets'),
                     '#submit' => array(array($this, 'submitDownloadPhotoSets'))
                 );
             }
@@ -208,7 +214,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
     public function submitDownloadFlickrUser(array &$form, FormStateInterface $form_state) {
         $parts = explode('-', $form_state->getTriggeringElement()['#name']);
         $user_id = $parts[0];
-        
+
         $config = $this->config('flickr.settings');
         $operations = array();
 
@@ -270,11 +276,31 @@ class FlickrApiSettingForm extends ConfigFormBase {
     }
 
     public function callbackDownloadPhotoSetOperation($data, &$context) {
-        \Drupal\flickr\Classes\Utils::createTerm(
-                $data['vocal'],
-                $data['set']->id,
-                \Drupal\flickr\Classes\Utils::createSlug($data['set']->title->_content, '_'),
-                $data['set']->description->_content);
+        $newTag = \Drupal\flickr\Classes\Utils::createTerm(
+                        $data['vocal'],
+                        $data['set']->id,
+                        $data['set']->title->_content,
+                        $data['set']->description->_content);
+        //print_log($newTag);
+
+        /* TODO: Download photos in the photoset and tag them */
+        $service = \Drupal::service('flickr.download');
+        $result = $service->rest_get_flickr_photos_in_set($service, $data['set']->id);
+        //print_log($result);
+        foreach ($result->photoset->photo as $photo) {
+            $query = \Drupal::entityQuery('node')
+                    ->condition('status', 1)
+                    ->condition('field_photo_id.value', $photo->id);
+
+            $nids = $query->execute();
+            
+            foreach ($nids as $key => $value) {
+                $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
+                $nodePhoto->save();
+            }
+            
+        }
     }
 
     public function callbackDownloadPhotoSetOperationEnd($success, $results, $operations) {
@@ -305,7 +331,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
         $page = 1;
         $service = \Drupal::service('flickr.download');
-        $result = $service->rest_get_flickr_photos($service, $user_id,$page);
+        $result = $service->rest_get_flickr_photos($service, $user_id, $page);
 
         // get total existed photos on Flickr server 
         $total_photos = $result->photos->total;
@@ -315,7 +341,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
         $operations = array();
         while ($page <= $total_pages) {
-            $result = $service->rest_get_flickr_photos($service,$user_id, $page);
+            $result = $service->rest_get_flickr_photos($service, $user_id, $page);
 
             $fphotos = $result->photos->photo;
             // each page loop 

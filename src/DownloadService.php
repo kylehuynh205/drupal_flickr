@@ -27,6 +27,13 @@ class DownloadService {
         return json_decode((string) $response->getBody());
     }
     
+    public function rest_get_flickr_photos_in_set($service, $photoset_id) { 
+        $config = \Drupal::config('flickr.settings');
+        $response = \Drupal::httpClient()->get("https://api.flickr.com/services/rest/?method=flickr.photosets.getPhotos&api_key=" . $config->get("apikey") . "&photoset_id=" . $photoset_id . "&extras=date_upload%2Cviews&format=json&nojsoncallback=1&sort=date-posted-desc");
+        return json_decode((string) $response->getBody());
+    }
+
+
     public function rest_get_flickr_photo_set($service, $user_id,$page) {
         $config = \Drupal::config('flickr.settings');
         $response = \Drupal::httpClient()->get("https://api.flickr.com/services/rest/?method=flickr.photosets.getList&api_key=" . $config->get("apikey") . "&user_id=" . $user_id . "&extras=date_upload%2Cviews&format=json&nojsoncallback=1&sort=date-posted-desc");
