@@ -1,0 +1,45 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.flickr_album.body
+    - field.field.node.flickr_album.field_count
+    - field.field.node.flickr_album.field_date_last_update
+    - field.field.node.flickr_album.field_date_uploaded
+    - field.field.node.flickr_album.field_farm
+    - field.field.node.flickr_album.field_photo_id
+    - field.field.node.flickr_album.field_photoset_id
+    - field.field.node.flickr_album.field_secret
+    - field.field.node.flickr_album.field_server
+    - field.field.node.flickr_album.field_term_id
+    - node.type.flickr_album
+  module:
+    - text
+    - user
+id: node.flickr_album.teaser
+targetEntityType: node
+bundle: flickr_album
+mode: teaser
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: 101
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+    region: content
+  links:
+    weight: 100
+    region: content
+hidden:
+  field_count: true
+  field_date_last_update: true
+  field_date_uploaded: true
+  field_farm: true
+  field_photo_id: true
+  field_photoset_id: true
+  field_secret: true
+  field_server: true
+  field_term_id: true

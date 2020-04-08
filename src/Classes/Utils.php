@@ -261,5 +261,14 @@ class Utils {
             }
         }
     }
+    
+    /**
+     * get query from flickr id
+     * @param string $flickr_id
+     * @return type
+     */
+    public static function getUserByFlickrID(string $flickr_id) { 
+        return user_load_by_mail($flickr_id .'@photo.kylehuynh.com');
+    }
 
 }

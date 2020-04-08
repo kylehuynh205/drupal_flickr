@@ -281,25 +281,70 @@ class FlickrApiSettingForm extends ConfigFormBase {
                         $data['set']->id,
                         $data['set']->title->_content,
                         $data['set']->description->_content);
-        //print_log($newTag);
 
-        /* TODO: Download photos in the photoset and tag them */
+        // CREATE node - type Photo Album and link primary photo and term iD
+        $owner = \Drupal\flickr\Classes\Utils::getUserByFlickrID($data['set']->owner);
+        if ($owner !== FALSE) {
+
+            $found_ids = \Drupal::entityQuery('node')
+                    ->condition('type', 'flickr_album')
+                    ->condition('field_photoset_id', $data['set']->id)
+                    ->execute();
+
+            if (count($found_ids) == 0) {
+                \Drupal\node\Entity\Node::create(array(
+                    'type' => 'flickr_album',
+                    'title' => $data['set']->title->_content,
+                    'body' => $data['set']->description->_content,
+                    'uid' => $owner->id(),
+                    'field_date_uploaded' => $data['set']->date_create,
+                    'field_date_last_update' => $data['set']->date_update,
+                    'field_count' => $data['set']->count_photos,
+                    'field_farm' => $data['set']->farm,
+                    'field_photoset_id' => $data['set']->id,
+                    'field_photo_id' => $data['set']->primary,
+                    'field_secret' => $data['set']->secret,
+                    'field_server' => $data['set']->server,
+                    'field_term_id' => $newTag
+                ))->save();
+            } else {
+
+                foreach ($found_ids as $key => $value) {
+                    $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                    $node->set('title', $data['set']->title->_content);
+                    $node->set('body', $data['set']->description->_content);
+                    $node->set('field_date_uploaded', $data['set']->date_create);
+                    $node->set('field_date_last_update', $data['set']->date_update);
+                    $node->set('field_count', $data['set']->count_photos);
+                    $node->set('field_farm', $data['set']->farm);
+                    $node->set('field_photoset_id', $data['set']->id);
+                    $node->set('field_photo_id', $data['set']->primary);
+                    $node->set('field_secret', $data['set']->secret);
+                    $node->set('field_server', $data['set']->server);
+                    $node->set('field_term_id', $newTag);
+                    $node->setOwner($owner);
+                    $node->save();
+                }
+            }
+        }
+
+        // TODO: Download photos in the photoset and tag them 
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_photos_in_set($service, $data['set']->id);
         //print_log($result);
         foreach ($result->photoset->photo as $photo) {
             $query = \Drupal::entityQuery('node')
+                    ->condition('type', 'flickr_photo')
                     ->condition('status', 1)
                     ->condition('field_photo_id.value', $photo->id);
 
             $nids = $query->execute();
-            
+
             foreach ($nids as $key => $value) {
                 $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
                 $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
                 $nodePhoto->save();
             }
-            
         }
     }
 

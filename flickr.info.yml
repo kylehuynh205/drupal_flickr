@@ -1,9 +1,9 @@
-name: 'Flickr'
+name: Flickr
 type: module
 description: 'Flickr Integration'
 core: 8.x
-package: 'flickr'
+package: flickr
 dependencies:
-   - path
-   - menu_ui
-   - field_ui
+  - path
+  - menu_ui
+  - field_ui

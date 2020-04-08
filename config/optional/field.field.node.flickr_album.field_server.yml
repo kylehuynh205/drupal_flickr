@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_server
+    - node.type.flickr_album
+id: node.flickr_album.field_server
+field_name: field_server
+entity_type: node
+bundle: flickr_album
+label: server
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
