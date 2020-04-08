@@ -233,7 +233,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
     public function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_user($flickrUserID);
-        
+
         $params = array(
             'ID' => time(),
             'user_login' => $result->person->username->_content,
@@ -268,9 +268,8 @@ class FlickrApiSettingForm extends ConfigFormBase {
                         'field_photosurl' => $result->person->photosurl->_content,
                         'field_profileurl' => $result->person->profileurl->_content,
                         'field_username' => $result->person->username->_content,
-                        'field_user_id' =>  $result->person->id,
+                        'field_user_id' => $result->person->id,
                         'title' => $result->person->username->_content
-                            
                     ))->save();
                 } else {
                     foreach ($found_ids as $key => $value) {
