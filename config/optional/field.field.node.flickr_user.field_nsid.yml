@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_nsid
+    - node.type.flickr_user
+id: node.flickr_user.field_nsid
+field_name: field_nsid
+entity_type: node
+bundle: flickr_user
+label: nsid
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

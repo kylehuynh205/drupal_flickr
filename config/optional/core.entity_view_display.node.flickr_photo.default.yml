@@ -1,0 +1,74 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.flickr_photo.body
+    - field.field.node.flickr_photo.field_date_last_update
+    - field.field.node.flickr_photo.field_date_taken
+    - field.field.node.flickr_photo.field_date_taken_unknown
+    - field.field.node.flickr_photo.field_date_takengranularity
+    - field.field.node.flickr_photo.field_date_uploaded
+    - field.field.node.flickr_photo.field_farm
+    - field.field.node.flickr_photo.field_isfamily
+    - field.field.node.flickr_photo.field_isfriend
+    - field.field.node.flickr_photo.field_ispublic
+    - field.field.node.flickr_photo.field_owner
+    - field.field.node.flickr_photo.field_photo_big_url
+    - field.field.node.flickr_photo.field_photo_description
+    - field.field.node.flickr_photo.field_photo_exif
+    - field.field.node.flickr_photo.field_photo_id
+    - field.field.node.flickr_photo.field_photo_org_url
+    - field.field.node.flickr_photo.field_photo_thumb_url
+    - field.field.node.flickr_photo.field_photopage_url
+    - field.field.node.flickr_photo.field_secret
+    - field.field.node.flickr_photo.field_server
+    - field.field.node.flickr_photo.field_tags
+    - field.field.node.flickr_photo.field_views
+    - node.type.flickr_photo
+  module:
+    - text
+    - user
+id: node.flickr_photo.default
+targetEntityType: node
+bundle: flickr_photo
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 101
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  field_tags:
+    weight: 102
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  links:
+    weight: 100
+    region: content
+hidden:
+  field_date_last_update: true
+  field_date_taken: true
+  field_date_taken_unknown: true
+  field_date_takengranularity: true
+  field_date_uploaded: true
+  field_farm: true
+  field_isfamily: true
+  field_isfriend: true
+  field_ispublic: true
+  field_owner: true
+  field_photo_big_url: true
+  field_photo_description: true
+  field_photo_exif: true
+  field_photo_id: true
+  field_photo_org_url: true
+  field_photo_thumb_url: true
+  field_photopage_url: true
+  field_secret: true
+  field_server: true
+  field_views: true

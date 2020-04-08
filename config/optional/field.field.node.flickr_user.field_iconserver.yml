@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_iconserver
+    - node.type.flickr_user
+id: node.flickr_user.field_iconserver
+field_name: field_iconserver
+entity_type: node
+bundle: flickr_user
+label: iconserver
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

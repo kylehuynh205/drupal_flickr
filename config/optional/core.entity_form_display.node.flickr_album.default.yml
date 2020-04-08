@@ -36,72 +36,6 @@ content:
     settings: {  }
     third_party_settings: {  }
     region: content
-  field_count:
-    weight: 127
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_date_last_update:
-    weight: 129
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_date_uploaded:
-    weight: 128
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_farm:
-    weight: 126
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_photo_id:
-    weight: 121
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_photoset_id:
-    weight: 123
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_secret:
-    weight: 124
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_server:
-    weight: 125
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_term_id:
-    weight: 122
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
   path:
     type: path
     weight: 30
@@ -147,4 +81,13 @@ content:
       match_limit: 10
     third_party_settings: {  }
     region: content
-hidden: {  }
+hidden:
+  field_count: true
+  field_date_last_update: true
+  field_date_uploaded: true
+  field_farm: true
+  field_photo_id: true
+  field_photoset_id: true
+  field_secret: true
+  field_server: true
+  field_term_id: true

@@ -1,0 +1,126 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.flickr_photo.body
+    - field.field.node.flickr_photo.field_date_last_update
+    - field.field.node.flickr_photo.field_date_taken
+    - field.field.node.flickr_photo.field_date_taken_unknown
+    - field.field.node.flickr_photo.field_date_takengranularity
+    - field.field.node.flickr_photo.field_date_uploaded
+    - field.field.node.flickr_photo.field_farm
+    - field.field.node.flickr_photo.field_isfamily
+    - field.field.node.flickr_photo.field_isfriend
+    - field.field.node.flickr_photo.field_ispublic
+    - field.field.node.flickr_photo.field_owner
+    - field.field.node.flickr_photo.field_photo_big_url
+    - field.field.node.flickr_photo.field_photo_description
+    - field.field.node.flickr_photo.field_photo_exif
+    - field.field.node.flickr_photo.field_photo_id
+    - field.field.node.flickr_photo.field_photo_org_url
+    - field.field.node.flickr_photo.field_photo_thumb_url
+    - field.field.node.flickr_photo.field_photopage_url
+    - field.field.node.flickr_photo.field_secret
+    - field.field.node.flickr_photo.field_server
+    - field.field.node.flickr_photo.field_tags
+    - field.field.node.flickr_photo.field_views
+    - node.type.flickr_photo
+  module:
+    - path
+    - text
+id: node.flickr_photo.default
+targetEntityType: node
+bundle: flickr_photo
+mode: default
+content:
+  body:
+    type: text_textarea_with_summary
+    weight: 31
+    settings:
+      rows: 9
+      summary_rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+    region: content
+  created:
+    type: datetime_timestamp
+    weight: 10
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  field_tags:
+    weight: 121
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  path:
+    type: path
+    weight: 30
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  promote:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 15
+    third_party_settings: {  }
+    region: content
+  status:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 120
+    region: content
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 16
+    third_party_settings: {  }
+    region: content
+  title:
+    type: string_textfield
+    weight: -5
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    region: content
+  uid:
+    type: entity_reference_autocomplete
+    weight: 5
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+      match_limit: 10
+    third_party_settings: {  }
+    region: content
+hidden:
+  field_date_last_update: true
+  field_date_taken: true
+  field_date_taken_unknown: true
+  field_date_takengranularity: true
+  field_date_uploaded: true
+  field_farm: true
+  field_isfamily: true
+  field_isfriend: true
+  field_ispublic: true
+  field_owner: true
+  field_photo_big_url: true
+  field_photo_description: true
+  field_photo_exif: true
+  field_photo_id: true
+  field_photo_org_url: true
+  field_photo_thumb_url: true
+  field_photopage_url: true
+  field_secret: true
+  field_server: true
+  field_views: true

@@ -390,9 +390,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
                     ->condition('field_photo_id.value', $photo->id);
 
             $nids = $query->execute();
+            print_log($nids);
 
             foreach ($nids as $key => $value) {
+                print_log($value);
                 $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                print_log($nodePhoto);
                 $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
                 $nodePhoto->save();
             }
@@ -482,7 +485,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 'type' => 'flickr_photo',
                 'title' => ($photo_node->title->_content != null) ? $photo_node->title->_content : " ",
                 'field_photo_description' => $photo_node->description->_content,
-                'field_photo_id' => $photo_node->id,
+                'field_photo_id' => $photo->id,
                 'field_secret' => $photo_node->secret,
                 'field_server' => $photo_node->server,
                 'field_farm' => $photo_node->farm,
@@ -508,7 +511,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
                 //$node->set('title', ($photo_node->title->_content != null) ? $photo_node->title->_content : " ");
                 //$node->set('field_photo_description', $photo_node->description->_content);
-                $node->set('field_photo_id', $photo_node->id);
+                $node->set('field_photo_id', $photo->id);
                 $node->set('field_secret', $photo_node->secret);
                 $node->set('field_server', $photo_node->server);
                 $node->set('field_farm', $photo_node->farm);
