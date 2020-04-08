@@ -223,9 +223,8 @@ class Utils {
                     }
                     $user->save();
                 }
-            } else {
-                
             }
+            return $ids;
         } catch (\Exception $ex) {
 
             // update when user already existed in Drupal 
@@ -256,9 +255,8 @@ class Utils {
                     }
                     $user->save();
                 }
-            } else {
-                
-            }
+            } 
+            return $ids;
         }
     }
     

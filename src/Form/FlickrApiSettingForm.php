@@ -233,7 +233,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
     public function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_user($flickrUserID);
-
+        
         $params = array(
             'ID' => time(),
             'user_login' => $result->person->username->_content,
@@ -242,7 +242,58 @@ class FlickrApiSettingForm extends ConfigFormBase {
             'display-name' => $result->person->username->_content
         );
 
-        \Drupal\flickr\Classes\Utils::createUser($params, \Drupal\flickr\Classes\Utils::getRole()['id']);
+        $nids = \Drupal\flickr\Classes\Utils::createUser($params, \Drupal\flickr\Classes\Utils::getRole()['id']);
+
+        foreach ($nids as $nid) {
+            // CREATE node - type Photo user and link Drupal User ID
+            $user = \Drupal\flickr\Classes\Utils::getUserByFlickrID($result->person->id);
+            if ($user !== FALSE) {
+
+                $found_ids = \Drupal::entityQuery('node')
+                        ->condition('type', 'flickr_user')
+                        ->condition('field_user_id', $result->person->id)
+                        ->execute();
+
+                if (count($found_ids) == 0) {
+                    \Drupal\node\Entity\Node::create(array(
+                        'type' => 'flickr_user',
+                        'field_count' => $result->person->photos->count->_content,
+                        'field_description' => $result->person->description->_content,
+                        'field_first_date' => $result->person->photos->firstdate->_content,
+                        'field_first_day_taken' => $result->person->photos->firstdatetaken->_content,
+                        'field_iconfarm' => $result->person->iconfam,
+                        'field_iconserver' => $result->person->iconserver,
+                        'field_mobileurl' => $result->person->mobileurl->_content,
+                        'field_nsid' => $result->person->nsid,
+                        'field_photosurl' => $result->person->photosurl->_content,
+                        'field_profileurl' => $result->person->profileurl->_content,
+                        'field_username' => $result->person->username->_content,
+                        'field_user_id' =>  $result->person->id,
+                        'title' => $result->person->username->_content
+                            
+                    ))->save();
+                } else {
+                    foreach ($found_ids as $key => $value) {
+                        $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                        $node->set('field_count', $result->person->photos->count->_content);
+                        $node->set('field_description', $result->person->description->_content);
+                        $node->set('field_first_date', $result->person->photos->firstdate->_content);
+                        $node->set('field_first_day_taken', $result->person->photos->firstdatetaken->_content);
+                        $node->set('field_iconfarm', $result->person->iconfam);
+                        $node->set('field_iconserver', $result->person->iconserver);
+                        $node->set('field_mobileurl', $result->person->mobileurl->_content);
+                        $node->set('field_nsid', $result->person->nsid);
+                        $node->set('field_photosurl', $result->person->photosurl->_content);
+                        $node->set('field_profileurl', $result->person->profileurl->_content);
+                        $node->set('field_username', $result->person->username->_content);
+                        $node->set('field_user_id', $result->person->id);
+                        $node->set('title', $result->person->username->_content);
+                        $node->setOwner($user);
+                        $node->save();
+                    }
+                }
+            }
+        }
     }
 
     /**
