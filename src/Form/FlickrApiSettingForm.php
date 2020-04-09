@@ -472,8 +472,8 @@ class FlickrApiSettingForm extends ConfigFormBase {
         $photo_node = $photo_info->photo;
         $owner = user_load_by_mail($photo_node->owner->nsid . "@photo.kylehuynh.com");
         //print_log("Download and insert in page " . $page);
-        $thumbnail = "http://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_z.jpg";
-        $bigphoto = "http://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_b.jpg";
+        $thumbnail = "https://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_z.jpg";
+        $bigphoto = "https://farm" . $photo_node->farm . ".staticflickr.com/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_k.jpg";
         //$bigphoto = "http://c2.staticflickr.com/".$photo_node->farm ."/" . $photo_node->server . "/" . $photo_node->id . "_" . $photo_node->secret . "_t.jpg";
         $orig_photo = "https://www.flickr.com/photos/" . $photo_node->owner->nsid . "/" . $photo_node->id . "/sizes/o/";
 
