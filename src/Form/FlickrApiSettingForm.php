@@ -344,7 +344,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
             if (count($found_ids) == 0) {
                 \Drupal\node\Entity\Node::create(array(
                     'type' => 'flickr_album',
-                    'title' => $data['set']->title->_content,
+                    'title' => "Photoset: ". $data['set']->title->_content,
                     'body' => $data['set']->description->_content,
                     'uid' => $owner->id(),
                     'field_date_uploaded' => $data['set']->date_create,
@@ -361,7 +361,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
 
                 foreach ($found_ids as $key => $value) {
                     $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
-                    $node->set('title', $data['set']->title->_content);
+                    $node->set('title', "Photoset: ". $data['set']->title->_content);
                     $node->set('body', $data['set']->description->_content);
                     $node->set('field_date_uploaded', $data['set']->date_create);
                     $node->set('field_date_last_update', $data['set']->date_update);
