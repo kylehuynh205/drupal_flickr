@@ -277,6 +277,7 @@ class Utils {
         } else {
             $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photo/" . self::createSlug($node->title->value), "en");
         }
+        return $path;
     }
 
 }
