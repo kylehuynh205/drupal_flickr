@@ -71,14 +71,6 @@ class FlickrApiSettingForm extends ConfigFormBase {
             //'#required' => TRUE,
             '#default_value' => ($config->get("secret") !== null) ? $config->get("apikey") : \Drupal\flickr\Classes\Utils::DEFAULT_SECRET
         );
-        /* $form['flickr-frob'] = array(
-          '#type' => 'textfield',
-          '#title' => $this
-          ->t('FROB:'),
-          //'#required' => TRUE,
-          '#default_value' => $config->get("frob")
-          ); */
-
 
         // need multiple field for user
         $form['flickr-users'] = array(
@@ -157,6 +149,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
         return $form;
     }
 
+    /**
+     * Handling submission of Save Configuration button 
+     * 
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
     public function submitForm(array &$form, FormStateInterface $form_state) {
         $configFactory = $this->configFactory->getEditable('flickr.settings');
         $configFactory->set('apikey', $form_state->getValues()['flickr-api-key'])
@@ -175,6 +173,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
         parent::submitForm($form, $form_state);
     }
 
+    /**
+     * Adding account 
+     * 
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
     public function adding(array &$form, FormStateInterface $form_state) {
         $this->noUsers = $form_state->get('number-of-users');
         $this->noUsers++;
@@ -226,10 +230,19 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 "Updating ....",
                 "Update unsuccessfully",
                 $operations,
-                '\Drupal\yublog_migration\Form\MigrationForm::callbackOperationEnd'
+                '\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadFlickrUserOperationEnd'
         );
     }
 
+    ////////////////////////////////////////////////////////////
+    ////////////        FLICKR USER     ////////////////////////
+    ////////////////////////////////////////////////////////////
+    /**
+     * Call back download Flickr User Operation
+     * 
+     * @param type $flickrUserID
+     * @param type $context
+     */
     public function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_user($flickrUserID);
@@ -293,139 +306,40 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 }
             }
         }
+
+        $context['message'] = "Downloading Flickr User - " . $flickrUserID;
+        $context['results'][$flickrUserID] = "Downloaded successfuly";
     }
 
     /**
-     * Submit form handler download photo sets
+     * Call back download flickr user operation
      * 
-     * @param array $form
-     * @param FormStateInterface $form_state
+     * @param type $success
+     * @param type $results
+     * @param type $operations
      */
-    public function submitDownloadPhotoSets(array &$form, FormStateInterface $form_state) {
-        // Create vocabulary as photoset
-        $vocabulary = \Drupal\flickr\Classes\Utils::createVocabulary("photosets", "Photo Sets", "Album");
-
-        $parts = explode('-', $form_state->getTriggeringElement()['#name']);
-        $user_id = $parts[0];
-
-        // Create photoset as term under vocabulary photoset
-        $service = \Drupal::service('flickr.download');
-        $result = $service->rest_get_flickr_photo_set($service, $user_id, 1);
-        $operations = array();
-        foreach ($result->photosets->photoset as $photoset) {
-            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary, 'set' => $photoset])));
-        }
-
-        \Drupal\flickr\Classes\BatchOp::start(
-                "Pull Photoset and create vocabularies",
-                "Connecting ...",
-                "Updating ....",
-                "Update unsuccessfully",
-                $operations,
-                '\Drupal\flickr\Form\FlickrAPISettingForm::callbackOperationEnd');
-    }
-
-    public function callbackDownloadPhotoSetOperation($data, &$context) {
-        $newTag = \Drupal\flickr\Classes\Utils::createTerm(
-                        $data['vocal'],
-                        $data['set']->id,
-                        $data['set']->title->_content,
-                        $data['set']->description->_content);
-        
-        // TOOD: NEED TO REMOVE PREVIOUS ASSIGNED PHOTO TO PHOTOSET
-        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $newTag]);
-        foreach ($photoNodes as $pnode) { 
-            //print_log($pnode->get('field_tags')->getValue());
-            $pnode->set('field_tags', array());
-            $pnode->save();
-        }
-        
-        
-        
-        // CREATE node - type Photo Album and link primary photo and term iD
-        $owner = \Drupal\flickr\Classes\Utils::getUserByFlickrID($data['set']->owner);
-        if ($owner !== FALSE) {
-
-            $found_ids = \Drupal::entityQuery('node')
-                    ->condition('type', 'flickr_album')
-                    ->condition('field_photoset_id', $data['set']->id)
-                    ->execute();
-
-            if (count($found_ids) == 0) {
-                \Drupal\node\Entity\Node::create(array(
-                    'type' => 'flickr_album',
-                    'title' => "Photoset: ". $data['set']->title->_content,
-                    'body' => $data['set']->description->_content,
-                    'uid' => $owner->id(),
-                    'field_date_uploaded' => $data['set']->date_create,
-                    'field_date_last_update' => $data['set']->date_update,
-                    'field_count' => $data['set']->count_photos,
-                    'field_farm' => $data['set']->farm,
-                    'field_photoset_id' => $data['set']->id,
-                    'field_photo_id' => $data['set']->primary,
-                    'field_secret' => $data['set']->secret,
-                    'field_server' => $data['set']->server,
-                    'field_term_id' => $newTag
-                ))->save();
-            } else {
-
-                foreach ($found_ids as $key => $value) {
-                    $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
-                    $node->set('title', "Photoset: ". $data['set']->title->_content);
-                    $node->set('body', $data['set']->description->_content);
-                    $node->set('field_date_uploaded', $data['set']->date_create);
-                    $node->set('field_date_last_update', $data['set']->date_update);
-                    $node->set('field_count', $data['set']->count_photos);
-                    $node->set('field_farm', $data['set']->farm);
-                    $node->set('field_photoset_id', $data['set']->id);
-                    $node->set('field_photo_id', $data['set']->primary);
-                    $node->set('field_secret', $data['set']->secret);
-                    $node->set('field_server', $data['set']->server);
-                    $node->set('field_term_id', $newTag);
-                    $node->setOwner($owner);
-                    $node->save();
-                }
-            }
-        }
-
-        //  Download photos in the photoset and tag them 
-        $service = \Drupal::service('flickr.download');
-        $result = $service->rest_get_flickr_photos_in_set($service, $data['set']->id);
-        //print_log($result);
-        foreach ($result->photoset->photo as $photo) {
-            $query = \Drupal::entityQuery('node')
-                    ->condition('type', 'flickr_photo')
-                    ->condition('status', 1)
-                    ->condition('field_photo_id.value', $photo->id);
-
-            $nids = $query->execute();
-
-            foreach ($nids as $key => $value) {
-                $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
-                $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
-                $nodePhoto->save();
-            }
-        }
-    }
-
-    public function callbackDownloadPhotoSetOperationEnd($success, $results, $operations) {
+    public function callbackDownloadFlickrUserOperationEnd($success, $results, $operations) {
         if ($success) {
             $message = \Drupal::translation()
-                    ->formatPlural(count($results), 'One Photosets synced.', '@count PhotoSets synced.');
+                    ->formatPlural(count($results), 'One Flick User Data downloaded.', '@count Flick User Data downloaded.');
         } else {
-            $message = t('Sync processes finished with an error.');
+            $message = t('Download processes finished with an error.');
         }
-        drupal_set_message($message);
+        \Drupal::messenger()->addMessage($message);
 
         // Providing data for the redirected page is done through $_SESSION.
         foreach ($results as $key => $value) {
-            $items[] = t('Synced applicant %sisid.', array(
-                '%sisid' => $key,
+            $items[] = t('Downloaded Flickr Account %flickrID successfully.', array(
+                '%flickrID' => $key,
             ));
         }
         $_SESSION['my_batch_results'] = $items;
     }
 
+    ////////////////////////////////////////////////////////////
+    ////////////        FLICKR PHOTO     ////////////////////////
+    ////////////////////////////////////////////////////////////
+    
     /**
      * {@inheritdoc}
      */
@@ -456,7 +370,8 @@ class FlickrApiSettingForm extends ConfigFormBase {
             $page ++;
         }
         \Drupal\flickr\Classes\BatchOp::start(
-                "Download Photos Data from Flickr", "Connecting ...", "Download ....", "Download unsuccessfully", $operations, '\Drupal\flickr\Form\FlickrApiSettingForm::callbackDownloadPhotoOperationEnd'
+                "Download Photos Data from Flickr", "Connecting ...", "Download ....", "Download unsuccessfully", $operations, 
+                '\Drupal\flickr\Form\FlickrApiSettingForm::callbackDownloadPhotoOperationEnd'
         );
     }
 
@@ -538,20 +453,180 @@ class FlickrApiSettingForm extends ConfigFormBase {
                 $node->save();
             }
         }
+        
+        $context['message'] = "Downloading Flickr Photo - " . $photo->id;
+        $context['results'][$photo->id] = "Downloaded successfuly";
     }
 
+    /**
+     * Callback download Photo operation
+     * @param type $success
+     * @param type $results
+     * @param type $operations
+     */
     public function callbackDownloadPhotoOperationEnd($success, $results, $operations) {
         if ($success) {
             $message = \Drupal::translation()
-                    ->formatPlural(count($results), 'One Photo synced.', '@count Photos synced.');
+                    ->formatPlural(count($results), 'One Photo downloaded.', '@count Photos downloaded.');
         } else {
-            $message = t('Sync processes finished with an error.');
+            $message = t('Downloaded processes finished with an error.');
         }
-        drupal_set_message($message);
+        \Drupal::messenger()->addMessage($message);
 
         // Providing data for the redirected page is done through $_SESSION.
         foreach ($results as $key => $value) {
-            $items[] = t('Synced applicant %sisid.', array(
+            $items[] = t('Downloaded Photo %sisid.', array(
+                '%sisid' => $key,
+            ));
+        }
+        $_SESSION['my_batch_results'] = $items;
+    }
+
+    
+    ////////////////////////////////////////////////////////////
+    ////////////        FLICKR PHOTOSET     ////////////////////////
+    ////////////////////////////////////////////////////////////
+    
+    /**
+     * Submit form handler download photo sets
+     * 
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
+    public function submitDownloadPhotoSets(array &$form, FormStateInterface $form_state) {
+        // Create vocabulary as photoset
+        $vocabulary = \Drupal\flickr\Classes\Utils::createVocabulary("photosets", "Photo Sets", "Album");
+
+        $parts = explode('-', $form_state->getTriggeringElement()['#name']);
+        $user_id = $parts[0];
+
+        // Create photoset as term under vocabulary photoset
+        $service = \Drupal::service('flickr.download');
+        $result = $service->rest_get_flickr_photo_set($service, $user_id, 1);
+        $operations = array();
+        foreach ($result->photosets->photoset as $photoset) {
+            array_push($operations, array('\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperation', array(['vocal' => $vocabulary, 'set' => $photoset])));
+        }
+
+        \Drupal\flickr\Classes\BatchOp::start(
+                "Pull Photoset and create vocabularies",
+                "Connecting ...",
+                "Updating ....",
+                "Update unsuccessfully",
+                $operations,
+                '\Drupal\flickr\Form\FlickrAPISettingForm::callbackDownloadPhotoSetOperationEnd');
+    }
+
+    /**
+     * Callback download photoset operation
+     * @param type $data
+     * @param type $context
+     */
+    public function callbackDownloadPhotoSetOperation($data, &$context) {
+        $newTag = \Drupal\flickr\Classes\Utils::createTerm(
+                        $data['vocal'],
+                        $data['set']->id,
+                        $data['set']->title->_content,
+                        $data['set']->description->_content);
+
+        // TOOD: NEED TO REMOVE PREVIOUS ASSIGNED PHOTO TO PHOTOSET
+        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $newTag]);
+        foreach ($photoNodes as $pnode) {
+            //print_log($pnode->get('field_tags')->getValue());
+            $pnode->set('field_tags', array());
+            $pnode->save();
+        }
+
+
+
+        // CREATE node - type Photo Album and link primary photo and term iD
+        $owner = \Drupal\flickr\Classes\Utils::getUserByFlickrID($data['set']->owner);
+        if ($owner !== FALSE) {
+
+            $found_ids = \Drupal::entityQuery('node')
+                    ->condition('type', 'flickr_album')
+                    ->condition('field_photoset_id', $data['set']->id)
+                    ->execute();
+
+            if (count($found_ids) == 0) {
+                \Drupal\node\Entity\Node::create(array(
+                    'type' => 'flickr_album',
+                    'title' => "Photoset: " . $data['set']->title->_content,
+                    'body' => $data['set']->description->_content,
+                    'uid' => $owner->id(),
+                    'field_date_uploaded' => $data['set']->date_create,
+                    'field_date_last_update' => $data['set']->date_update,
+                    'field_count' => $data['set']->count_photos,
+                    'field_farm' => $data['set']->farm,
+                    'field_photoset_id' => $data['set']->id,
+                    'field_photo_id' => $data['set']->primary,
+                    'field_secret' => $data['set']->secret,
+                    'field_server' => $data['set']->server,
+                    'field_term_id' => $newTag
+                ))->save();
+            } else {
+
+                foreach ($found_ids as $key => $value) {
+                    $node = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                    $node->set('title', "Photoset: " . $data['set']->title->_content);
+                    $node->set('body', $data['set']->description->_content);
+                    $node->set('field_date_uploaded', $data['set']->date_create);
+                    $node->set('field_date_last_update', $data['set']->date_update);
+                    $node->set('field_count', $data['set']->count_photos);
+                    $node->set('field_farm', $data['set']->farm);
+                    $node->set('field_photoset_id', $data['set']->id);
+                    $node->set('field_photo_id', $data['set']->primary);
+                    $node->set('field_secret', $data['set']->secret);
+                    $node->set('field_server', $data['set']->server);
+                    $node->set('field_term_id', $newTag);
+                    $node->setOwner($owner);
+                    $node->save();
+                }
+            }
+        }
+
+        //  Download photos in the photoset and tag them 
+        $service = \Drupal::service('flickr.download');
+        $result = $service->rest_get_flickr_photos_in_set($service, $data['set']->id);
+        //print_log($result);
+        foreach ($result->photoset->photo as $photo) {
+            $query = \Drupal::entityQuery('node')
+                    ->condition('type', 'flickr_photo')
+                    ->condition('status', 1)
+                    ->condition('field_photo_id.value', $photo->id);
+
+            $nids = $query->execute();
+
+            foreach ($nids as $key => $value) {
+                $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
+                $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
+                $nodePhoto->save();
+            }
+        }
+
+        $context['message'] = "Downloading and Processing Flickr Photosets: " . $data['set']->title->_content;
+        $context['results'][$data['set']->id] = "Downloaded successfuly";
+    }
+
+    /**
+     * Call back download photo set operation 
+     * 
+     * @param type $success
+     * @param type $results
+     * @param type $operations
+     */
+    public function callbackDownloadPhotoSetOperationEnd($success, $results, $operations) {
+        if ($success) {
+            $message = \Drupal::translation()
+                    ->formatPlural(count($results), 'One Photosets downloaded.', '@count PhotoSets downloaded.');
+        } else {
+            $message = t('Downloaded processes finished with an error.');
+        }
+        \Drupal::messenger()->addMessage($message);
+
+        // Providing data for the redirected page is done through $_SESSION.
+        foreach ($results as $key => $value) {
+            $items[] = t('Downloaded Photo %sisid.', array(
                 '%sisid' => $key,
             ));
         }

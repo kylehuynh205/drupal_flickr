@@ -10,7 +10,7 @@ flickr.flickr_api_setting_form:
   path: '/admin/config/flickr/flickrapisetting'
   defaults:
     _form: '\Drupal\flickr\Form\FlickrApiSettingForm'
-    _title: 'Configure Flickr API'
+    _title: 'Configure Flickr Intergration'
   requirements:
     _permission: 'access administration pages'
   options:
