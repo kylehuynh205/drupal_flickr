@@ -87,6 +87,24 @@ function logging($thing) {
 }
 
 /**
+ * Implements hook_insert().
+ */
+function flickr_insert(\Drupal\Core\Entity\EntityInterface $node) {
+    print_log(hook_entity_update);
+    // Set the URL alias
+    if (get_class($node) == 'Drupal\node\Entity\Node') {
+        \Drupal\flickr\Classes\Utils::createNodeAlias($node);
+    }
+}
+
+function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
+    if (get_class($node) == 'Drupal\node\Entity\Node') {
+        \Drupal\flickr\Classes\Utils::createNodeAlias($node);
+    }
+}
+
+
+/**
  * Hook_install
  */
 function flickr_install() {

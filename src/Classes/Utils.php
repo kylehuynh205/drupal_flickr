@@ -133,8 +133,8 @@ class Utils {
         }
         $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid, 0, NULL, TRUE);
         $existed = self::isTermExisted($name, $terms);
-        
-        if ( $existed === false) {
+
+        if ($existed === false) {
             //With options
             $options = [
                 'vid' => $vid,
@@ -152,7 +152,7 @@ class Utils {
         }
         return $existed;
     }
-    
+
     /**
      * Check the term existed 
      * 
@@ -162,8 +162,8 @@ class Utils {
      */
     public static function isTermExisted(string $name, array $terms) {
         $flag = false;
-        foreach ($terms as $term) { 
-            if ($term->getName() === $name) { 
+        foreach ($terms as $term) {
+            if ($term->getName() === $name) {
                 $flag = $term->id();
                 break;
             }
@@ -255,18 +255,28 @@ class Utils {
                     }
                     $user->save();
                 }
-            } 
+            }
             return $ids;
         }
     }
-    
+
     /**
      * get query from flickr id
      * @param string $flickr_id
      * @return type
      */
-    public static function getUserByFlickrID(string $flickr_id) { 
-        return user_load_by_mail($flickr_id .'@photo.kylehuynh.com');
+    public static function getUserByFlickrID(string $flickr_id) {
+        return user_load_by_mail($flickr_id . '@photo.kylehuynh.com');
+    }
+
+    public static function createNodeAlias(\Drupal\node\Entity\Node $node) {
+        if ($node->getType() == "flickr_user") {
+            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photographer/" . self::createSlug($node->title->value), "en");
+        } else if ($node->getType() == "flickr_album") {
+            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photoset/" . self::createSlug($node->title->value), "en");
+        } else {
+            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photo/" . self::createSlug($node->title->value), "en");
+        }
     }
 
 }
