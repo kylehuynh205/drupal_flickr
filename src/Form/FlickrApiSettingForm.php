@@ -333,12 +333,12 @@ class FlickrApiSettingForm extends ConfigFormBase {
                         $data['set']->description->_content);
         
         // TOOD: NEED TO REMOVE PREVIOUS ASSIGNED PHOTO TO PHOTOSET
-        /*$photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $newTag]);
+        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $newTag]);
         foreach ($photoNodes as $pnode) { 
             //print_log($pnode->get('field_tags')->getValue());
             $pnode->set('field_tags', array());
             $pnode->save();
-        }*/
+        }
         
         
         
