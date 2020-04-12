@@ -87,6 +87,100 @@ function logging($thing) {
 }
 
 /**
+ * Modify content type edit/add form 
+ * 
+ * @param type $form
+ * @param type $form_state
+ * @param type $form_id
+ */
+function flickr_form_alter(&$form, &$form_state, $form_id) {
+
+    if ($form_id == "node_flickr_photo_edit_form") {
+        $node = $form_state->getFormObject()->getEntity();
+        print_log(array_keys($form));
+
+        $form['#attached']['library'] = array(
+            'flickr/bootstrap',
+            'flickr/font_awesome',
+        );
+
+
+        $form['photo_assets'] = array(
+            '#type' => 'details',
+            '#title' => 'Photo <i>'.$node->title->value.'</i>:',
+            '#open' => true,
+            '#weight' => 100
+        );
+
+        $form['photo_assets']['flickr-page'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup(
+                    '<a class="btn btn-danger" href="' . $node->field_photopage_url->value . '" target="_blank" download><i class="fab fa-flickr"></i> View in Flickr</a>', [])
+        );
+        $form['photo_assets']['download-other-size-page'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup(
+                    '&nbsp;&nbsp;<a class="btn btn-primary" href="' . $node->field_photo_org_url->value . '" target="_blank" download><i class="fas fa-download"></i> Download Other sizes</a>', [])
+        );
+
+        $form['photo_assets']['container'] = array(
+            '#type' => 'container',
+            '#attributes' => ['class' => ['row']]
+        );
+
+        $form['photo_assets']['container']['size-thumb'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup(
+                    '<p>'
+                    . '<img src="' . $node->field_photo_thumb_url->value . '" />'
+                    . '</p>'
+                    . '<figcaption><strong>Thumbnail Size (640x640)</strong></figcaption>'
+                    . '<p><a class="btn btn-info" href="' . $node->field_photo_thumb_url->value . '" target="_blank" download><i class="fas fa-download"></i> Download</a></p>', []),
+            '#prefix' => '<div class="col-sm-3 text-center">',
+            '#suffix' => '</div>'
+        );
+        $form['photo_assets']['container']['size-big'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup(
+                    '<p><img src="' . $node->field_photo_big_url->value . '" /></p>'
+                    . '<figcaption><strong>Big Size (1024 on longest side)</strong></figcaption>'
+                    . '<p><a class="btn btn-info" href="' . $node->field_photo_big_url->value . '" target="_blank" download><i class="fas fa-download"></i> Download</a></p>', []),
+            '#prefix' => '<div class="col-sm-9 text-center">',
+            '#suffix' => '</div>'
+        );
+
+         $form['advanced']['photo_dates'] = array(
+            '#type' => 'details',
+            '#title' => 'Dates',
+            '#weight' => 101
+        );
+         $form['advanced']['photo_dates']['dates'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup(
+                    '<p><strong>Date Taken:</strong> '.$node->field_date_taken->value.'</p>'
+                    . '</p><strong>Date Uploaded:</strong> '.$node->field_date_uploaded->value.'</p>'
+                    . '<p><strong>Date Last Update:</strong> '.$node->field_date_last_update->value.'</p>', [])
+        );
+        
+        
+        $form['advanced']['photo_exif'] = array(
+            '#type' => 'details',
+            '#title' => 'Photo Exif',
+            '#weight' => 101
+        );
+        $form['advanced']['photo_exif']['container'] = array(
+            '#type' => 'container'
+        );
+        $form['advanced']['photo_exif']['container']['exif'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup($node->field_photo_exif->value, [])
+        );
+        //unset($form['field_tags']);
+        
+        
+    } else if ($form_id == "node_flickr_user_edit_form") {
+        print_log('Modify Node - Flickr user add/edit form');
+    } else if ($form_id == "node_flickr_album_edit_form") {
+        print_log('Modify Node - Flickr album add/edit form');
+    }
+    return $form;
+}
+
+/**
  * Implements hook_insert().
  */
 function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
@@ -101,7 +195,6 @@ function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
 }
-
 
 /**
  * Hook_install

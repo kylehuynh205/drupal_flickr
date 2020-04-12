@@ -1,0 +1,13 @@
+font_awesome: 
+    css:
+        theme:
+            assets/fontawesome/css/all.css: {}
+            
+             
+bootstrap: 
+    js:
+        assets/bootstrap/js/popper.min.js: {}  
+        assets/bootstrap/js/bootstrap.min.js: {}  
+    css:
+      theme:
+        assets/bootstrap/css/bootstrap.min.css: {}
