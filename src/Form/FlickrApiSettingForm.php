@@ -331,7 +331,17 @@ class FlickrApiSettingForm extends ConfigFormBase {
                         $data['set']->id,
                         $data['set']->title->_content,
                         $data['set']->description->_content);
-
+        
+        // TOOD: NEED TO REMOVE PREVIOUS ASSIGNED PHOTO TO PHOTOSET
+        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $newTag]);
+        foreach ($photoNodes as $pnode) { 
+            //print_log($pnode->get('field_tags')->getValue());
+            $pnode->set('field_tags', array());
+            $pnode->save();
+        }
+        
+        
+        
         // CREATE node - type Photo Album and link primary photo and term iD
         $owner = \Drupal\flickr\Classes\Utils::getUserByFlickrID($data['set']->owner);
         if ($owner !== FALSE) {
@@ -378,7 +388,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
             }
         }
 
-        // TODO: Download photos in the photoset and tag them 
+        //  Download photos in the photoset and tag them 
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_photos_in_set($service, $data['set']->id);
         //print_log($result);
@@ -389,12 +399,9 @@ class FlickrApiSettingForm extends ConfigFormBase {
                     ->condition('field_photo_id.value', $photo->id);
 
             $nids = $query->execute();
-            print_log($nids);
 
             foreach ($nids as $key => $value) {
-                print_log($value);
                 $nodePhoto = \Drupal::entityTypeManager()->getStorage('node')->load($value);
-                print_log($nodePhoto);
                 $nodePhoto->field_tags->appendItem(['target_id' => $newTag]);
                 $nodePhoto->save();
             }
