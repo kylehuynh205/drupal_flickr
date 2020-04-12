@@ -89,19 +89,16 @@ function logging($thing) {
 /**
  * Implements hook_insert().
  */
-function flickr_insert(\Drupal\Core\Entity\EntityInterface $node) {
-    
+function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
     // Set the URL alias
     if (get_class($node) == 'Drupal\node\Entity\Node') {
-        print_log("adding alias when insert");
-        print_log(\Drupal\flickr\Classes\Utils::createNodeAlias($node));
+        \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
 }
 
 function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
     if (get_class($node) == 'Drupal\node\Entity\Node') {
-        print_log("adding alias when update");
-        print_log(\Drupal\flickr\Classes\Utils::createNodeAlias($node));
+        \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
 }
 
