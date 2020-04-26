@@ -271,13 +271,37 @@ class Utils {
 
     public static function createNodeAlias(\Drupal\node\Entity\Node $node) {
         if ($node->getType() == "flickr_user") {
-            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photographer/" . self::createSlug($node->title->value), "en");
+            $tag = "/photographer/" . $node->field_user_id->value . "/" . self::createSlug($node->title->value);
+            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            }
         } else if ($node->getType() == "flickr_album") {
-            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photoset/" . self::createSlug($node->title->value), "en");
+            $tag ="/photoset/" . $node->field_photoset_id->value . '/' .  self::createSlug($node->title->value);
+            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            }
         } else {
-            $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), "/photo/" . self::createSlug($node->title->value), "en");
+            $tag = "/photo/" . $node->field_photo_id->value . "/" . self::createSlug($node->title->value);
+            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            }
         }
         return $path;
+    }
+
+    /**
+     * 
+     * @param type $tag
+     * @return type
+     */
+    public static function encodeAliasUrl($tag) {
+        if (!empty($tag)) {
+            if (\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
+                //$tag .= $tag . time();
+                \Drupal::entityTypeManager()->getStorage('path_alias')->delete([$tag]);
+            }
+        }
+        return $tag;
     }
 
 }

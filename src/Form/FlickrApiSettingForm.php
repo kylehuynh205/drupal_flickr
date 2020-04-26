@@ -402,7 +402,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         if (count($found_ids) == 0) {
             \Drupal\node\Entity\Node::create(array(
                 'type' => 'flickr_photo',
-                'title' => ($photo_node->title->_content != null) ? $photo_node->title->_content : " ",
+                'title' => ($photo_node->title->_content != null) ? $photo_node->title->_content : $photo->id,
                 'field_photo_description' => $photo_node->description->_content,
                 'field_photo_id' => $photo->id,
                 'field_secret' => $photo_node->secret,

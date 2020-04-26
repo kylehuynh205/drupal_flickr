@@ -97,7 +97,7 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
 
     if ($form_id == "node_flickr_photo_edit_form") {
         $node = $form_state->getFormObject()->getEntity();
-        print_log(array_keys($form));
+        //print_log(array_keys($form));
 
         $form['#attached']['library'] = array(
             'flickr/bootstrap',
@@ -180,10 +180,15 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
     return $form;
 }
 
+function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) {
+    print_log(flickr_pathauto_alias_alter);
+}
+
 /**
  * Implements hook_insert().
  */
 function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
+    print_log(flickr_entity_insert);
     // Set the URL alias
     if (get_class($node) == 'Drupal\node\Entity\Node') {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
@@ -191,6 +196,7 @@ function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
 }
 
 function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
+    print_log(flickr_entity_update);
     if (get_class($node) == 'Drupal\node\Entity\Node') {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
