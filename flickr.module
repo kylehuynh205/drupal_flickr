@@ -107,7 +107,7 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
 
         $form['photo_assets'] = array(
             '#type' => 'details',
-            '#title' => 'Photo <i>'.$node->title->value.'</i>:',
+            '#title' => 'Photo <i>' . $node->title->value . '</i>:',
             '#open' => true,
             '#weight' => 100
         );
@@ -145,19 +145,19 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
             '#suffix' => '</div>'
         );
 
-         $form['advanced']['photo_dates'] = array(
+        $form['advanced']['photo_dates'] = array(
             '#type' => 'details',
             '#title' => 'Dates',
             '#weight' => 101
         );
-         $form['advanced']['photo_dates']['dates'] = array(
+        $form['advanced']['photo_dates']['dates'] = array(
             '#markup' => new \Drupal\Component\Render\FormattableMarkup(
-                    '<p><strong>Date Taken:</strong> '.$node->field_date_taken->value.'</p>'
-                    . '</p><strong>Date Uploaded:</strong> '.$node->field_date_uploaded->value.'</p>'
-                    . '<p><strong>Date Last Update:</strong> '.$node->field_date_last_update->value.'</p>', [])
+                    '<p><strong>Date Taken:</strong> ' . $node->field_date_taken->value . '</p>'
+                    . '</p><strong>Date Uploaded:</strong> ' . $node->field_date_uploaded->value . '</p>'
+                    . '<p><strong>Date Last Update:</strong> ' . $node->field_date_last_update->value . '</p>', [])
         );
-        
-        
+
+
         $form['advanced']['photo_exif'] = array(
             '#type' => 'details',
             '#title' => 'Photo Exif',
@@ -170,18 +170,46 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
             '#markup' => new \Drupal\Component\Render\FormattableMarkup($node->field_photo_exif->value, [])
         );
         //unset($form['field_tags']);
-        
-        
     } else if ($form_id == "node_flickr_user_edit_form") {
         print_log('Modify Node - Flickr user add/edit form');
+
+        $node = $form_state->getFormObject()->getEntity();
+        //print_log(array_keys($form));
+
+        $form['#attached']['library'] = array(
+            'flickr/bootstrap',
+            'flickr/font_awesome',
+        );
     } else if ($form_id == "node_flickr_album_edit_form") {
         print_log('Modify Node - Flickr album add/edit form');
+
+        $node = $form_state->getFormObject()->getEntity();
+        //print_log(array_keys($form));
+
+        $form['#attached']['library'] = array(
+            'flickr/bootstrap',
+            'flickr/font_awesome',
+        );
     }
     return $form;
 }
 
 function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) {
     print_log(flickr_pathauto_alias_alter);
+}
+
+/**
+ * Implement hook_node_presave
+ * @param \Drupal\Core\Entity\EntityInterface $node
+ */
+function flickr_entity_presave(\Drupal\Core\Entity\EntityInterface $node) {
+    
+    if ($node->getEntityType()->id() == 'node' && in_array($node->getType(), ['flickr_user', 'flickr_album', 'flickr_photo'])) {
+        $node->setNewRevision(TRUE);
+        $node->revision_log = 'Created revision for node' . $nid;
+        $node->setRevisionCreationTime(REQUEST_TIME);
+        $node->setRevisionUserId($user_id);
+    }
 }
 
 /**

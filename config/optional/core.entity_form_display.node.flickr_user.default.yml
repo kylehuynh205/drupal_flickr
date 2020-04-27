@@ -25,134 +25,50 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 10
+    weight: 3
     settings: {  }
     third_party_settings: {  }
     region: content
-  field_count:
-    weight: 44
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
   field_description:
-    weight: 45
+    type: text_textarea_with_summary
+    weight: 1
+    region: content
     settings:
       rows: 9
       summary_rows: 3
       placeholder: ''
+      show_summary: false
     third_party_settings: {  }
-    type: text_textarea_with_summary
-    region: content
-  field_first_date:
-    weight: 50
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_first_day_taken:
-    weight: 51
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_iconfarm:
-    weight: 37
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_iconserver:
-    weight: 36
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-    type: number
-    region: content
-  field_mobileurl:
-    weight: 41
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textarea
-    region: content
-  field_nsid:
-    weight: 47
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_photosurl:
-    weight: 39
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textarea
-    region: content
-  field_profileurl:
-    weight: 40
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textarea
-    region: content
-  field_user_id:
-    weight: 48
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
-  field_username:
-    weight: 49
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-    type: string_textfield
-    region: content
   path:
     type: path
-    weight: 30
+    weight: 6
+    region: content
     settings: {  }
     third_party_settings: {  }
-    region: content
   promote:
     type: boolean_checkbox
+    weight: 7
+    region: content
     settings:
       display_label: true
-    weight: 15
     third_party_settings: {  }
-    region: content
   status:
     type: boolean_checkbox
+    weight: 4
+    region: content
     settings:
       display_label: true
-    weight: 120
-    region: content
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
+    weight: 5
+    region: content
     settings:
       display_label: true
-    weight: 16
     third_party_settings: {  }
-    region: content
   title:
     type: string_textfield
-    weight: -5
+    weight: 0
     settings:
       size: 60
       placeholder: ''
@@ -160,7 +76,7 @@ content:
     region: content
   uid:
     type: entity_reference_autocomplete
-    weight: 5
+    weight: 2
     settings:
       match_operator: CONTAINS
       size: 60
@@ -168,4 +84,15 @@ content:
       match_limit: 10
     third_party_settings: {  }
     region: content
-hidden: {  }
+hidden:
+  field_count: true
+  field_first_date: true
+  field_first_day_taken: true
+  field_iconfarm: true
+  field_iconserver: true
+  field_mobileurl: true
+  field_nsid: true
+  field_photosurl: true
+  field_profileurl: true
+  field_user_id: true
+  field_username: true
