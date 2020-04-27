@@ -11,3 +11,25 @@ bootstrap:
     css:
       theme:
         assets/bootstrap/css/bootstrap.min.css: {}
+        
+gallery:
+    js:
+        
+        assets/plugins/jquery-slimscroll/jquery.slimscroll.js: {}
+        assets/plugins/node-waves/waves.js: {}
+        assets/plugins/light-gallery/js/lightgallery-all.js: {}
+        assets/plugins/lg-share/lg-share.min.js: {}
+        assets/plugins/justifiedGallery/jquery.justifiedGallery.min.js: {}
+        assets/module//js/flickr.admin.js: {}
+    css:
+      theme: 
+        assets/plugins/node-waves/waves.css: {}
+        assets/plugins/animate-css/animate.css: {}
+        assets/plugins/light-gallery/css/lightgallery.css: {}
+        assets/plugins/justifiedGallery/justifiedGallery.min.css: {}
+        assets/plugins/fontawesome/css/all.css: {}
+   
+        
+        
+        
+        
