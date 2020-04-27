@@ -171,7 +171,6 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
         );
         //unset($form['field_tags']);
     } else if ($form_id == "node_flickr_user_edit_form") {
-        print_log('Modify Node - Flickr user add/edit form');
 
         $node = $form_state->getFormObject()->getEntity();
         //print_log(array_keys($form));
@@ -181,7 +180,6 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
             'flickr/font_awesome',
         );
     } else if ($form_id == "node_flickr_album_edit_form") {
-        print_log('Modify Node - Flickr album add/edit form');
 
         $node = $form_state->getFormObject()->getEntity();
         //print_log(array_keys($form));
@@ -195,7 +193,8 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
 }
 
 function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) {
-    print_log(flickr_pathauto_alias_alter);
+
+    
 }
 
 /**
@@ -206,7 +205,7 @@ function flickr_entity_presave(\Drupal\Core\Entity\EntityInterface $node) {
     
     if ($node->getEntityType()->id() == 'node' && in_array($node->getType(), ['flickr_user', 'flickr_album', 'flickr_photo'])) {
         $node->setNewRevision(TRUE);
-        $node->revision_log = 'Created revision for node' . $nid;
+        $node->revision_log = (!empty($node->getRevisionLogMessage()) ? $node->getRevisionLogMessage() : time());
         $node->setRevisionCreationTime(REQUEST_TIME);
         $node->setRevisionUserId($user_id);
     }
@@ -216,7 +215,6 @@ function flickr_entity_presave(\Drupal\Core\Entity\EntityInterface $node) {
  * Implements hook_insert().
  */
 function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
-    print_log(flickr_entity_insert);
     // Set the URL alias
     if (get_class($node) == 'Drupal\node\Entity\Node') {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
@@ -224,7 +222,6 @@ function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
 }
 
 function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
-    print_log(flickr_entity_update);
     if (get_class($node) == 'Drupal\node\Entity\Node') {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
