@@ -16,16 +16,10 @@
         // The `context` and `settings` arguments are specific to when and where
         // this is being executed.
         attach: function (context, settings) {
-            $("#admin-photoset-gallery").lightGallery({
-                thumbnail: true,
-                selector: "a"
-            }).justifiedGallery({
+            $("#admin-photoset-gallery").justifiedGallery({
                 "rowHeight": 150,
             });
-            $("#photo-to-added-gallery").lightGallery({
-                thumbnail: true,
-                selector: "a"
-            }).justifiedGallery({
+            $("#photo-to-added-gallery").justifiedGallery({
                 "rowHeight": 150,
             });
 

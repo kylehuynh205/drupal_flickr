@@ -225,11 +225,11 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
                 'style' => array('"height: auto;"'),
             ),
         );
-        
+
         // handle submit form 
-        $form['photoset']['add-photo'] =array(
+        $form['photoset']['add-photo'] = array(
             '#type' => 'submit',
-            '#submit' => array('flickr_form_submit'),
+            '#submit' => array('submitFormAlterAddPhoto'),
             '#value' => '+ Add'
         );
 
@@ -238,28 +238,46 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
                 . '<div id="admin-photoset-gallery" class="list-unstyled justified-gallery clearfix" style="height: auto;">';
         foreach ($photoNodes as $photo) {
             $gallery .= '<div>'
-                    . '<a data-pinterest-text="' . $photo->title->value . '" data-tweet-text="Describe how do you feel about " ' . $photo->title->value . '
-                           data-facebook-share-url="' . $photo->field_photopage_url->value . '" 
-                           data-twitter-share-url="' . $photo->field_photopage_url->value . '" 
-                           data-googleplus-share-url="' . $photo->field_photopage_url->value . '" 
-                           data-pinterest-share-url="' . $photo->field_photopage_url->value . '"
-                           data-download-url="' . $photo->field_photo_org_url->value . '"
-                           data-sub-html="#caption-' . $photo->id() . '"
-                           href="' . $photo->field_photo_big_url->value . '">
-                            <img class="img-responsive thumbnail animated-image" src="' . $photo->field_photo_thumb_url->value . '">
-                        </a>
-                        <div id="caption-' . $photo->id() . '" style="display:none">
-                            <h4>' . $photo->title->value . '</h4><p>' . $photo->field_photo_description->value . '</p>
+                    . '<img class="img-responsive thumbnail animated-image" src="' . $photo->field_photo_thumb_url->value . '">
+                        <div class="caption text-center">
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#removePhotoModal-' . $photo->id() . '">
+                                Remove
+                            </button>
                         </div>
                     </div>
             ';
+
+            $form['photoset']['confirm-remove-photo-' . $photo->id()] = array(
+                '#type' => 'submit',
+                '#value' => 'Yes',
+                '#submit' => array('submitFormAlterRemovePhoto'),
+                '#name' => $photo->id().'-remove',
+                '#id' => $photo->id().'-remove',
+                '#attributes' => array(
+                    'class' => array('btn btn-link')),
+                '#prefix' => new \Drupal\Component\Render\FormattableMarkup(
+                        '<div class="modal fade" id="removePhotoModal-' . $photo->id() . '" tabindex="-1" role="dialog" aria-labelledby="removePhotoModalLabel-' . $photo->id() . '" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                      <div class="modal-content">
+                                        <div class="modal-header">
+                                          <h5 class="modal-title" id="removePhotoModalLabel-' . $photo->id() . '">Remove ' . $photo->title->value . ' from this album</h5>
+                                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                          </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><h3>Are you sure to proceed ?</h3></p>
+                                            <div class="modal-footer">
+                                        ', []),
+                '#suffix' => new \Drupal\Component\Render\FormattableMarkup('  <button type="button" class="btn btn-default" data-dismiss="modal">No</button></div></div>
+                                </div>
+                              </div>
+                            </div>', [])
+            );
         }
         $gallery .= '</div>';
         $form['photoset']['gallery'] = array(
             '#markup' => new \Drupal\Component\Render\FormattableMarkup($gallery, []));
-
-
-        
     }
     return $form;
 }
@@ -271,9 +289,26 @@ function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) 
 /**
  * 
  * @param type $form
+ * @param type $form_state
+ */
+function submitFormAlterRemovePhoto($form, $form_state) {
+    $photoSetNode = $form_state->getFormObject()->getEntity();
+    
+    $photoid = explode('-', $form_state->getTriggeringElement()['#id'])[0];
+    $removingPhoto = \Drupal\node\Entity\Node::load($photoid);
+    
+    $index = array_search($photoSetNode->field_term_id->value, array_column($removingPhoto->get('field_tags')->getValue(), 'target_id'));
+    print_log($index);
+    $removingPhoto->get('field_tags')->removeItem($index);
+    $removingPhoto->save();
+}
+
+/**
+ * 
+ * @param type $form
  * @param FormStateInterface $form_state
  */
-function flickr_form_submit($form, $form_state) {
+function submitFormAlterAddPhoto($form, $form_state) {
     print_log(flickr_node_form_submit);
     if (isset($form_state->getValues()['add-photos-to-photoset'][0]['target_id'])) {
         $photoSetNode = $form_state->getFormObject()->getEntity();
