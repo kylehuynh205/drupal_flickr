@@ -240,6 +240,7 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
             $gallery .= '<div>'
                     . '<img class="img-responsive thumbnail animated-image" src="' . $photo->field_photo_thumb_url->value . '">
                         <div class="caption text-center">
+                            <p><h4>'.$photo->title->value.'</h4></p>
                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#removePhotoModal-' . $photo->id() . '">
                                 Remove
                             </button>
@@ -298,7 +299,6 @@ function submitFormAlterRemovePhoto($form, $form_state) {
     $removingPhoto = \Drupal\node\Entity\Node::load($photoid);
     
     $index = array_search($photoSetNode->field_term_id->value, array_column($removingPhoto->get('field_tags')->getValue(), 'target_id'));
-    print_log($index);
     $removingPhoto->get('field_tags')->removeItem($index);
     $removingPhoto->save();
 }
@@ -309,7 +309,6 @@ function submitFormAlterRemovePhoto($form, $form_state) {
  * @param FormStateInterface $form_state
  */
 function submitFormAlterAddPhoto($form, $form_state) {
-    print_log(flickr_node_form_submit);
     if (isset($form_state->getValues()['add-photos-to-photoset'][0]['target_id'])) {
         $photoSetNode = $form_state->getFormObject()->getEntity();
         $photoid = $form_state->getValues()['add-photos-to-photoset'][0]['target_id'];

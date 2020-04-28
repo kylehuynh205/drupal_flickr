@@ -19,7 +19,10 @@
             $("#admin-photoset-gallery").justifiedGallery({
                 "rowHeight": 150,
             });
-            $("#photo-to-added-gallery").justifiedGallery({
+            $("#photo-to-added-gallery").lightGallery({
+                thumbnail: true,
+                selector: "a"
+            }).justifiedGallery({
                 "rowHeight": 150,
             });
 
