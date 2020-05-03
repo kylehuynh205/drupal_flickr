@@ -25,6 +25,12 @@
             }).justifiedGallery({
                 "rowHeight": 150,
             });
+            $("#admin-photographer-gallery").lightGallery({
+                thumbnail: true,
+                selector: "a"
+            }).justifiedGallery({
+                "rowHeight": 150,
+            });
 
         }
     };

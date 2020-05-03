@@ -172,17 +172,7 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
         //unset($form['field_tags']);
     } else if ($form_id == "node_flickr_user_edit_form") {
 
-        $node = $form_state->getFormObject()->getEntity();
-        //print_log(array_keys($form));
-
-        $form['#attached']['library'] = array(
-            'flickr/bootstrap',
-            'flickr/font_awesome',
-        );
-    } else if ($form_id == "node_flickr_album_edit_form") {
-
-        $node = $form_state->getFormObject()->getEntity();
-        //print_log(array_keys($form));
+        $photographerNode = $form_state->getFormObject()->getEntity();
 
         $form['#attached']['library'] = array(
             'flickr/bootstrap',
@@ -191,56 +181,89 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
         );
         $form['photoset'] = array(
             '#type' => 'details',
-            '#title' => 'Photoset Gallery:',
-            '#open' => true,
-            '#weight' => 100
+            '#title' => 'Photographer\'s Gallery:',
+            '#open' => false,
+            '#weight' => 100000
         );
-
-        $form['photoset']['add-photos-to-photoset'] = [
-            '#type' => 'entity_autocomplete',
-            '#title' => t('Search photo(s) to add to this photoset:'),
-            '#tags' => TRUE,
-            '#target_type' => 'node',
-            '#selection_settings' => [
-                'target_bundles' => ['flickr_photo'],
-            ],
-            '#weight' => '0',
-            '#ajax' => [
-                'callback' => 'Drupal\flickr\Form\FormAlterAjaxCallback::ajaxCallbackLoadSelectedPhoto',
-                'event' => 'autocompleteclose',
-                'wrapper' => 'photo-to-added-gallery',
-                'progress' => array(
-                    'type' => 'throbber',
-                    'message' => NULL,
-                ),
-            ],
-        ];
-
-        $form['photoset']['selected-photos-gallery'] = array(
-            '#type' => 'html_tag',
-            '#tag' => 'div',
-            '#attributes' => array(
-                'class' => array('list-unstyled justified-gallery clearfix'),
-                'id' => array('photo-to-added-gallery'),
-                'style' => array('"height: auto;"'),
-            ),
-        );
-
-        // handle submit form 
-        $form['photoset']['add-photo'] = array(
-            '#type' => 'submit',
-            '#submit' => array('submitFormAlterAddPhoto'),
-            '#value' => '+ Add'
-        );
-
-        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $node->field_term_id->value]);
+        $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_owner' => $photographerNode->field_nsid->value]);
         $gallery = '<h3>Existing:</h3>'
-                . '<div id="admin-photoset-gallery" class="list-unstyled justified-gallery clearfix" style="height: auto;">';
+                . '<div id="admin-photographer-gallery" class="list-unstyled justified-gallery clearfix" style="height: auto;">';
         foreach ($photoNodes as $photo) {
             $gallery .= '<div>'
                     . '<img class="img-responsive thumbnail animated-image" src="' . $photo->field_photo_thumb_url->value . '">
                         <div class="caption text-center">
-                            <p><h4>'.$photo->title->value.'</h4></p>
+                            <p><h4>' . $photo->title->value . '</h4></p>
+                        </div>
+                    </div>
+            ';
+        }
+        $gallery .= '</div>';
+        $form['photoset']['gallery'] = array(
+            '#markup' => new \Drupal\Component\Render\FormattableMarkup($gallery, []),
+            
+        );
+    } else if ($form_id == "node_flickr_album_edit_form") {
+
+        $node = $form_state->getFormObject()->getEntity();
+        //print_log(array_keys($form));
+        if (isset($node->field_photoset_id->value)) {
+            $form['#attached']['library'] = array(
+                'flickr/bootstrap',
+                'flickr/font_awesome',
+                'flickr/gallery',
+            );
+            $form['photoset'] = array(
+                '#type' => 'details',
+                '#title' => 'Photoset Gallery:',
+                '#open' => true,
+                '#weight' => 100
+            );
+
+            $form['photoset']['add-photos-to-photoset'] = [
+                '#type' => 'entity_autocomplete',
+                '#title' => t('Search photo(s) to add to this photoset:'),
+                '#tags' => TRUE,
+                '#target_type' => 'node',
+                '#selection_settings' => [
+                    'target_bundles' => ['flickr_photo'],
+                ],
+                '#weight' => '0',
+                '#ajax' => [
+                    'callback' => 'Drupal\flickr\Form\FormAlterAjaxCallback::ajaxCallbackLoadSelectedPhoto',
+                    'event' => 'autocompleteclose',
+                    'wrapper' => 'photo-to-added-gallery',
+                    'progress' => array(
+                        'type' => 'throbber',
+                        'message' => NULL,
+                    ),
+                ],
+            ];
+
+            $form['photoset']['selected-photos-gallery'] = array(
+                '#type' => 'html_tag',
+                '#tag' => 'div',
+                '#attributes' => array(
+                    'class' => array('list-unstyled justified-gallery clearfix'),
+                    'id' => array('photo-to-added-gallery'),
+                    'style' => array('"height: auto;"'),
+                ),
+            );
+
+            // handle submit form 
+            $form['photoset']['add-photo'] = array(
+                '#type' => 'submit',
+                '#submit' => array('submitFormAlterAddPhoto'),
+                '#value' => '+ Add'
+            );
+
+            $photoNodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['field_tags' => $node->field_term_id->value]);
+            $gallery = '<h3>Existing:</h3>'
+                    . '<div id="admin-photoset-gallery" class="list-unstyled justified-gallery clearfix" style="height: auto;">';
+            foreach ($photoNodes as $photo) {
+                $gallery .= '<div>'
+                        . '<img class="img-responsive thumbnail animated-image" src="' . $photo->field_photo_thumb_url->value . '">
+                        <div class="caption text-center">
+                            <p><h4>' . $photo->title->value . '</h4></p>
                             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#removePhotoModal-' . $photo->id() . '">
                                 Remove
                             </button>
@@ -248,16 +271,16 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
                     </div>
             ';
 
-            $form['photoset']['confirm-remove-photo-' . $photo->id()] = array(
-                '#type' => 'submit',
-                '#value' => 'Yes',
-                '#submit' => array('submitFormAlterRemovePhoto'),
-                '#name' => $photo->id().'-remove',
-                '#id' => $photo->id().'-remove',
-                '#attributes' => array(
-                    'class' => array('btn btn-link')),
-                '#prefix' => new \Drupal\Component\Render\FormattableMarkup(
-                        '<div class="modal fade" id="removePhotoModal-' . $photo->id() . '" tabindex="-1" role="dialog" aria-labelledby="removePhotoModalLabel-' . $photo->id() . '" aria-hidden="true">
+                $form['photoset']['confirm-remove-photo-' . $photo->id()] = array(
+                    '#type' => 'submit',
+                    '#value' => 'Yes',
+                    '#submit' => array('submitFormAlterRemovePhoto'),
+                    '#name' => $photo->id() . '-remove',
+                    '#id' => $photo->id() . '-remove',
+                    '#attributes' => array(
+                        'class' => array('btn btn-link')),
+                    '#prefix' => new \Drupal\Component\Render\FormattableMarkup(
+                            '<div class="modal fade" id="removePhotoModal-' . $photo->id() . '" tabindex="-1" role="dialog" aria-labelledby="removePhotoModalLabel-' . $photo->id() . '" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                       <div class="modal-content">
                                         <div class="modal-header">
@@ -270,21 +293,29 @@ function flickr_form_alter(&$form, &$form_state, $form_id) {
                                             <p><h3>Are you sure to proceed ?</h3></p>
                                             <div class="modal-footer">
                                         ', []),
-                '#suffix' => new \Drupal\Component\Render\FormattableMarkup('  <button type="button" class="btn btn-default" data-dismiss="modal">No</button></div></div>
+                    '#suffix' => new \Drupal\Component\Render\FormattableMarkup('  <button type="button" class="btn btn-default" data-dismiss="modal">No</button></div></div>
                                 </div>
                               </div>
                             </div>', [])
+                );
+            }
+            $gallery .= '</div>';
+            $form['photoset']['gallery'] = array(
+                '#markup' => new \Drupal\Component\Render\FormattableMarkup($gallery, []));
+        } else {
+            $form['photoset']['upload-to-flickr'] = array(
+                '#type' => 'submit',
+                '#submit' => array('submitFormUploadLocalPhotosetToFlickr'),
+                '#value' => 'Upload To Flickr',
+                '#weight' => 100,
             );
         }
-        $gallery .= '</div>';
-        $form['photoset']['gallery'] = array(
-            '#markup' => new \Drupal\Component\Render\FormattableMarkup($gallery, []));
     }
     return $form;
 }
 
-function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) {
-    
+function submitFormUploadLocalPhotosetToFlickr($form, $form_state) {
+    print_log(submitFormUploadLocalPhotosetToFlickr);
 }
 
 /**
@@ -294,10 +325,10 @@ function flickr_pathauto_alias_alter(\Drupal\Core\Entity\EntityInterface $node) 
  */
 function submitFormAlterRemovePhoto($form, $form_state) {
     $photoSetNode = $form_state->getFormObject()->getEntity();
-    
+
     $photoid = explode('-', $form_state->getTriggeringElement()['#id'])[0];
     $removingPhoto = \Drupal\node\Entity\Node::load($photoid);
-    
+
     $index = array_search($photoSetNode->field_term_id->value, array_column($removingPhoto->get('field_tags')->getValue(), 'target_id'));
     $removingPhoto->get('field_tags')->removeItem($index);
     $removingPhoto->save();
