@@ -368,13 +368,15 @@ function flickr_entity_presave(\Drupal\Core\Entity\EntityInterface $node) {
  */
 function flickr_entity_insert(\Drupal\Core\Entity\EntityInterface $node) {
     // Set the URL alias
-    if (get_class($node) == 'Drupal\node\Entity\Node') {
+    //if (get_class($node) == 'Drupal\node\Entity\Node') {
+    if ($node->getEntityType()->id() == 'node' && in_array($node->getType(), ['flickr_user', 'flickr_album', 'flickr_photo'])) {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
 }
 
 function flickr_entity_update(\Drupal\Core\Entity\EntityInterface $node) {
-    if (get_class($node) == 'Drupal\node\Entity\Node') {
+    //if (get_class($node) == 'Drupal\node\Entity\Node') {
+    if ($node->getEntityType()->id() == 'node' && in_array($node->getType(), ['flickr_user', 'flickr_album', 'flickr_photo'])) {
         \Drupal\flickr\Classes\Utils::createNodeAlias($node);
     }
 }
