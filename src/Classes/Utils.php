@@ -272,18 +272,42 @@ class Utils {
     public static function createNodeAlias(\Drupal\node\Entity\Node $node) {
         if ($node->getType() == "flickr_user") {
             $tag = "/photographer/" . $node->field_user_id->value . "/" . self::createSlug($node->title->value);
-            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
-                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            /*if (!\Drupal::service('path_alias.repository')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path_alias.repository')->save("/node/" . $node->id(), $tag, "en");
+            }*/
+            if (!\Drupal::service('path_alias.repository')->lookupByAlias($tag, 'en')) {
+                 $path_alias = \Drupal::entityTypeManager()->getStorage('path_alias')->create([
+                     'path' => "/node/" . $node->id(),
+                     'alias' => $tag,
+                     'langcode' => "en",
+                 ]);
+                 $path_alias->save();
             }
         } else if ($node->getType() == "flickr_album") {
             $tag ="/photoset/" . $node->field_photoset_id->value . '/' .  self::createSlug($node->title->value);
-            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
-                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            /*if (!\Drupal::service('path_alias.repository')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path_alias.repository')->save("/node/" . $node->id(), $tag, "en");
+            }*/
+            if (!\Drupal::service('path_alias.repository')->lookupByAlias($tag, 'en')) {
+                 $path_alias = \Drupal::entityTypeManager()->getStorage('path_alias')->create([
+                     'path' => "/node/" . $node->id(),
+                     'alias' => $tag,
+                     'langcode' => "en",
+                 ]);
+                 $path_alias->save();
             }
         } else {
             $tag = "/photo/" . $node->field_photo_id->value . "/" . self::createSlug($node->title->value);
-            if (!\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
-                $path = \Drupal::service('path.alias_storage')->save("/node/" . $node->id(), $tag, "en");
+            /*if (!\Drupal::service('path_alias.repository')->aliasExists($tag, 'en')) {
+                $path = \Drupal::service('path_alias.repository')->save("/node/" . $node->id(), $tag, "en");
+            }*/
+            if (!\Drupal::service('path_alias.repository')->lookupByAlias($tag, 'en')) {
+                 $path_alias = \Drupal::entityTypeManager()->getStorage('path_alias')->create([
+                     'path' => "/node/" . $node->id(),
+                     'alias' => $tag,
+                     'langcode' => "en",
+                 ]);
+                 $path_alias->save();
             }
         }
         return $path;
@@ -296,7 +320,7 @@ class Utils {
      */
     public static function encodeAliasUrl($tag) {
         if (!empty($tag)) {
-            if (\Drupal::service('path.alias_storage')->aliasExists($tag, 'en')) {
+            if (\Drupal::service('path_alias.repository')->aliasExists($tag, 'en')) {
                 //$tag .= $tag . time();
                 \Drupal::entityTypeManager()->getStorage('path_alias')->delete([$tag]);
             }
