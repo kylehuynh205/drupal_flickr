@@ -464,7 +464,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * @param type $results
      * @param type $operations
      */
-    public function callbackDownloadPhotoOperationEnd($success, $results, $operations) {
+    public static function callbackDownloadPhotoOperationEnd($success, $results, $operations) {
         if ($success) {
             $message = \Drupal::translation()
                     ->formatPlural(count($results), 'One Photo downloaded.', '@count Photos downloaded.');
