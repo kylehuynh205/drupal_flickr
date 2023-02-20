@@ -1,7 +1,7 @@
 {
     "name": "kylehuynh/flickr",
     "type": "drupal-module",
-    "description": "This module creates content entity with fields which is associated photos and their metadata in Flickr account(s).",
+    "description": "This module creates content entity with fields which is associated photos and their metadata in Flickr account(s) via Flickr Rest API web services.",
     "keywords": [
         "Flickr", "photos", "photography", "metdata"
     ],
