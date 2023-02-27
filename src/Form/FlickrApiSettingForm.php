@@ -243,7 +243,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * @param type $flickrUserID
      * @param type $context
      */
-    public function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
+    public static function callbackDownloadFlickrUserOperation($flickrUserID, &$context) {
         $service = \Drupal::service('flickr.download');
         $result = $service->rest_get_flickr_user($flickrUserID);
 
@@ -263,6 +263,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
             if ($user !== FALSE) {
 
                 $found_ids = \Drupal::entityQuery('node')
+                        ->accessCheck(FALSE)
                         ->condition('type', 'flickr_user')
                         ->condition('field_user_id', $result->person->id)
                         ->execute();
@@ -381,12 +382,13 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * @param type $photo
      * @param type $context
      */
-    public function callbackDownloadPhotoOperation($photo, &$context) {
+    public static function callbackDownloadPhotoOperation($photo, &$context) {
         $photo_exif = \Drupal\flickr\Classes\Utils::get_photo_exif_content($photo->id);
         $service = \Drupal::service('flickr.download');
         $photo_info = $service->rest_get_flickr_photo_info($photo->id);
 
         $found_ids = \Drupal::entityQuery('node')
+                ->accessCheck(FALSE)
                 ->condition('type', 'flickr_photo')
                 ->condition('field_photo_id', $photo->id)
                 ->execute();
@@ -544,6 +546,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         if ($owner !== FALSE) {
 
             $found_ids = \Drupal::entityQuery('node')
+                    ->accessCheck(FALSE)
                     ->condition('type', 'flickr_album')
                     ->condition('field_photoset_id', $data['set']->id)
                     ->execute();
@@ -591,6 +594,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
         //print_log($result);
         foreach ($result->photoset->photo as $photo) {
             $query = \Drupal::entityQuery('node')
+ 		    ->accessCheck(FALSE)
                     ->condition('type', 'flickr_photo')
                     ->condition('status', 1)
                     ->condition('field_photo_id.value', $photo->id);

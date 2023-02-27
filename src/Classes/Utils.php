@@ -101,6 +101,7 @@ class Utils {
         } else {
             // Vocabulary Already exist
             $query = \Drupal::entityQuery('taxonomy_term');
+            $query->accessCheck(FALSE);
             $query->condition('vid', $vid);
             $vocabulary = $query->execute();
         }
@@ -197,6 +198,7 @@ class Utils {
             $result = $user->save();
 
             $ids = \Drupal::entityQuery('user')
+                    ->accessCheck(FALSE)
                     ->condition('status', 1)
                     ->condition('mail', $params['user_email'])
                     ->execute();
@@ -229,6 +231,7 @@ class Utils {
 
             // update when user already existed in Drupal 
             $ids = \Drupal::entityQuery('user')
+                    ->accessCheck(FALSE)
                     ->condition('status', 1)
                     ->condition('mail', $params['user_email'])
                     ->execute();
