@@ -524,7 +524,7 @@ class FlickrApiSettingForm extends ConfigFormBase {
      * @param type $data
      * @param type $context
      */
-    public function callbackDownloadPhotoSetOperation($data, &$context) {
+    public static function callbackDownloadPhotoSetOperation($data, &$context) {
         $newTag = \Drupal\flickr\Classes\Utils::createTerm(
                         $data['vocal'],
                         $data['set']->id,
